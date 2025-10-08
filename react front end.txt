@@ -1,0 +1,191 @@
+import React, { useState } from 'react';
+
+// --- SVG Icon Components (for single-file compatibility) ---
+const Icon = ({ path, className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d={path} />
+  </svg>
+);
+
+const DashboardIcon = () => <Icon path="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />;
+const DocumentIcon = () => <Icon path="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />;
+const InboxIcon = () => <Icon path="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V7l7 4 7-4v12zM12 10L5 6h14l-7 4z" />;
+const ClockIcon = () => <Icon path="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />;
+const TagIcon = () => <Icon path="M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16zM15 11c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z" />;
+const UserGroupIcon = () => <Icon path="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />;
+const SettingsIcon = () => <Icon path="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z" />;
+const SearchIcon = () => <Icon path="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" className="w-5 h-5 text-gray-400"/>;
+const MenuIcon = () => <Icon path="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />;
+const UserCircleIcon = () => <Icon path="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" className="w-8 h-8"/>
+
+// --- Mock Data ---
+const mockInboxData = [
+  { id: 1, created: 'Oct 02, 2025', title: 'Q3 Financial Report', tags: ['Finance', 'Report', 'Urgent'], correspondent: 'Accounting Dept.' },
+  { id: 2, created: 'Oct 01, 2025', title: 'New Marketing Campaign Brief', tags: ['Marketing', 'Planning'], correspondent: 'Jane Doe' },
+  { id: 3, created: 'Sep 28, 2025', title: 'Scanned HR Onboarding Docs', tags: ['HR', 'Scanned'], correspondent: 'HR Bot' },
+  { id: 4, created: 'Sep 25, 2025', title: 'Project Alpha - Technical Specs', tags: ['Engineering', 'Project Alpha'], correspondent: 'John Smith' },
+];
+
+const mockRecentData = [
+  { id: 5, created: 'Oct 02, 2025', title: 'Q3 Financial Report', tags: ['Finance', 'Report', 'Urgent'], correspondent: 'Accounting Dept.' },
+  { id: 6, created: 'Sep 30, 2025', title: 'Client Meeting Minutes', tags: ['Meeting', 'Client X'], correspondent: 'Sarah Lee' },
+  { id: 7, created: 'Sep 29, 2025', title: 'Supplier Invoice #INV-1024', tags: ['Invoice', 'Supplier Y'], correspondent: 'Automated System' },
+];
+
+const mockStats = {
+  inbox: 8,
+  total: 84,
+  characters: '2,610,849',
+  tags: 28,
+  correspondents: 7,
+  docTypes: 8,
+};
+
+
+// --- Reusable Components ---
+const NavLink = ({ icon, label, isActive, count }) => (
+  <a href="#" className={`flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${isActive ? 'bg-green-100 text-green-800' : 'text-gray-600 hover:bg-gray-100'}`}>
+    <div className="flex items-center space-x-3">
+      {icon}
+      <span>{label}</span>
+    </div>
+    {count && <span className={`px-2 py-0.5 text-xs rounded-full ${isActive ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-700'}`}>{count}</span>}
+  </a>
+);
+
+const DocumentTable = ({ title, data }) => (
+  <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+    <div className="p-4 border-b border-gray-200">
+      <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+    </div>
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Correspondent</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((doc) => (
+            <tr key={doc.id} className="hover:bg-gray-50">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{doc.created}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{doc.title}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm">
+                <div className="flex flex-wrap gap-1">
+                  {doc.tags.map(tag => <span key={tag} className="px-2 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">{tag}</span>)}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{doc.correspondent}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
+
+// --- Main App Component ---
+export default function App() {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  // Four Pillars represented in the UI:
+  // 1. Store & Organize: "Upload new documents" & folder-like navigation.
+  // 2. Find: The global Search bar.
+  // 3. Secure: User icon, Settings, Users & Groups links imply security.
+  // 4. Track: "Recently Added" table shows document history.
+
+  return (
+    <div className="h-screen w-full bg-gray-50 flex overflow-hidden font-sans">
+      {/* --- Sidebar (Navigation) --- */}
+      <aside className={`absolute lg:relative w-64 h-full flex-shrink-0 bg-white border-r border-gray-200 flex-col justify-between transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+        <div>
+          <div className="h-16 flex items-center px-4 bg-green-600 text-white">
+            <DocumentIcon />
+            <span className="ml-3 text-xl font-bold">DocuFlow</span>
+          </div>
+          <nav className="p-4 space-y-1">
+            <NavLink icon={<DashboardIcon />} label="Dashboard" isActive />
+            <NavLink icon={<DocumentIcon />} label="Documents" />
+            <NavLink icon={<InboxIcon />} label="Inbox" count={mockStats.inbox} />
+            <NavLink icon={<ClockIcon />} label="Recently Added" />
+            <div className="pt-4">
+              <h4 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Manage</h4>
+              <div className="mt-2 space-y-1">
+                <NavLink icon={<TagIcon />} label="Tags" />
+                <NavLink icon={<UserGroupIcon />} label="Correspondents" />
+              </div>
+            </div>
+          </nav>
+        </div>
+        <div className="p-4 border-t border-gray-200">
+          <h4 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Administration</h4>
+          <div className="mt-2 space-y-1">
+            <NavLink icon={<SettingsIcon />} label="Settings" />
+            <NavLink icon={<UserGroupIcon />} label="Users & Groups" />
+          </div>
+        </div>
+      </aside>
+
+      {/* --- Main Content Area --- */}
+      <main className="flex-1 flex flex-col w-full overflow-y-auto">
+        {/* --- Header --- */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
+          <div className="flex items-center">
+            <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="lg:hidden mr-4 text-gray-600">
+              <MenuIcon />
+            </button>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <SearchIcon />
+              </div>
+              <input type="text" placeholder="Search documents..." className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-green-500 focus:border-green-500 sm:text-sm" />
+            </div>
+          </div>
+          <div className="flex items-center">
+            <span className="text-sm font-medium text-gray-700 mr-3 hidden sm:block">Hello, User2</span>
+            <UserCircleIcon />
+          </div>
+        </header>
+
+        {/* --- Dashboard Content --- */}
+        <div className="flex-grow p-4 sm:p-6 lg:flex lg:gap-6">
+          <div className="lg:flex-1 space-y-6">
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <DocumentTable title="Inbox" data={mockInboxData} />
+            <DocumentTable title="Recently Added" data={mockRecentData} />
+          </div>
+
+          {/* --- Right Sidebar (Info/Actions) --- */}
+          <div className="w-full lg:w-72 mt-6 lg:mt-0 lg:flex-shrink-0 space-y-6">
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="font-semibold text-gray-800 mb-4">Statistics</h3>
+              <ul className="text-sm text-gray-600 space-y-2">
+                <li className="flex justify-between">Documents in inbox: <span className="font-medium text-gray-900">{mockStats.inbox}</span></li>
+                <li className="flex justify-between">Total documents: <span className="font-medium text-gray-900">{mockStats.total}</span></li>
+                <li className="flex justify-between">Total characters: <span className="font-medium text-gray-900">{mockStats.characters}</span></li>
+                <hr className="my-2"/>
+                <li className="flex justify-between">Tags: <span className="font-medium text-gray-900">{mockStats.tags}</span></li>
+                <li className="flex justify-between">Correspondents: <span className="font-medium text-gray-900">{mockStats.correspondents}</span></li>
+                <li className="flex justify-between">Document Types: <span className="font-medium text-gray-900">{mockStats.docTypes}</span></li>
+              </ul>
+            </div>
+            
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="font-semibold text-gray-800 mb-4">Upload new documents</h3>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                <p className="text-sm text-gray-500">Drop documents anywhere or</p>
+                <button className="mt-4 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                  Browse Files
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

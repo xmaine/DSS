@@ -1,0 +1,81 @@
+Based on the identified core modules and the user roles (System Administrator, Senior Department Head, Department Head, Employee), here is a refined sidebar structure with unique, straightforward titles and options. The design ensures clarity, avoids repetition, and considers accessibility on various screen sizes.
+
+The sidebar will be **role-aware**. While all users see a consistent *structure*, the specific options available to them will be dynamically filtered based on their role permissions. This means the list below represents the *full potential* of the sidebar, but individual users will only see the options relevant to their access level.
+
+---
+
+### **Sidebar Design: Role-Aware Structure**
+
+**Goal:** Provide a clear, intuitive navigation path for each user role without clutter or confusion. Focus on core document management tasks.
+
+**Structure:**
+*   **Primary Navigation:** Group related functions under clear, descriptive headings.
+*   **Consistency:** Use similar naming conventions across sections.
+*   **Accessibility:** Ensure text is legible and icons are used appropriately (if implemented) for quick recognition. Options should be easily tappable on smaller screens.
+
+---
+
+### **Sidebar Title & Options (Role-Aware)**
+
+#### **1. Home / Dashboard**
+*(All Users - Default landing page)*
+*   **Dashboard:** A high-level overview of recent activity, documents due for review, popular documents (based on ratings), and notifications. (This is the first option after login).
+
+#### **2. Documents**
+*(All Users - Core Functionality)*
+*   **My Documents:** View documents owned by the current user. (Employee, Dept Head, Senior Head)
+*   **Shared With Me:** View documents that have been shared with the current user. (All Roles)
+*   **Recent Documents:** List of documents accessed recently by the user. (All Roles)
+*   **Search:** Access the full-text search functionality. (All Roles)
+*   **Document Library:** Browse all accessible documents in the system (organized by folders). (All Roles)
+
+#### **3. Folders**
+*(All Users - Organization)*
+*   **My Folders:** View and manage folders created by the current user. (All Roles)
+*   **Shared Folders:** View folders that have been shared with the current user. (All Roles)
+*   **All Folders:** View the entire folder hierarchy (read-only for non-admins). (All Roles)
+
+#### **4. Management**
+*(Admin, Senior Head, Dept Head - Access Control & System Settings)*
+*   **User Management:** View and manage user accounts (create, edit, delete). (System Admin Only)
+*   **Role Management:** Define and assign roles and permissions. (System Admin Only)
+*   **Permission Settings:** Configure detailed access rights for folders and documents. (System Admin, Senior Head, Dept Head)
+*   **Document Types:** Manage predefined document types (e.g., Contract, Report). (System Admin, Senior Head, Dept Head)
+*   **Tags & Correspondents:** Manage tags and correspondents used for indexing. (System Admin, Senior Head, Dept Head)
+
+#### **5. Tools**
+*(All Users - Utility Functions)*
+*   **Version History:** View and compare different versions of a document. (All Users)
+*   **File Locking:** See which files are locked and manage locks. (All Users)
+*   **Notifications:** View and manage system notifications. (All Users)
+*   **Reports:** Generate reports on document access, popularity, and usage. (System Admin, Senior Head, Dept Head)
+*   **Settings:** User preferences (e.g., theme, notification settings). (All Users)
+
+#### **6. Actions**
+*(All Users - Primary Operations)*
+*   **Upload Document:** Initiate the process of uploading a new file. (All Users)
+*   **Create Folder:** Create a new folder. (All Users)
+*   **Share Document/Folder:** Share a document or folder with others. (All Users)
+*   **Rate Document:** Assign a rating to a document. (All Users)
+*   **Link Document:** Connect a document to another entity (e.g., task, project). (All Users)
+
+---
+
+### **Role-Specific Sidebar Visibility**
+
+To ensure clarity and prevent confusion:
+
+1.  **System Administrator:** Sees **all** options. They have full control over the system.
+2.  **Senior Department Head:** Sees all options except `User Management`. They can manage roles, permissions, and types within their scope.
+3.  **Department Head:** Sees all options except `User Management` and `Role Management`. They can manage permissions and types for their department.
+4.  **Employee:** Sees only the core functionalities: **Home**, **Documents**, **Folders**, **Tools** (with limited access like Version History, Notifications), and **Actions** (like Upload, Share, Rate). They cannot access any management or reporting features.
+
+### **Why this works**
+
+*   **Unique Titles:** Each option has a distinct name (e.g., "My Documents" vs "Shared With Me", "Document Types" vs "Tags & Correspondents").
+*   **Straightforward Language:** Uses common, non-technical terms ("Upload," "Share," "Search," "Reports").
+*   **No Repetition:** Avoids using the same word (e.g., "Document") as both a section title and an action.
+*   **Logical Grouping:** Related functions are grouped under clear headings (e.g., "Management" for admin tools, "Tools" for utilities).
+*   **Scalability:** The structure allows for adding more features later without disrupting the existing layout.
+*   **Accessibility:** The use of clear categories and concise labels makes it easy for users to find what they need quickly, adjust to screen size.
+*   Remove System Name "Document Solutions" from the Sidebar
