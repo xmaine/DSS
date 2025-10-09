@@ -1,74 +1,106 @@
-# DOCUMENT SOLUTIONS - Project Planning
+# DOCUMENT SOLUTIONS Project Plan
 
-## Overview
-This document outlines the high-level direction, scope, technology stack, and initial design philosophy for the "DOCUMENT SOLUTIONS" Document Management System (DMS). The goal is to create a robust, user-friendly, and secure system for managing digital documents on desktop and laptop machines, primarily serving internal organizational needs.
+## 1. Project Overview
 
-## Scope
-*   **Primary Goal:** Provide a centralized, secure, and efficient platform for storing, organizing, searching, accessing, sharing, and managing documents.
-*   **Target Platform:** Desktop and Laptop applications (Windows, macOS, Linux). Mobile accessibility is out of scope for the initial release.
-*   **Target Users:**
-    *   **System Administrator:** Full control over the system, users, roles, and security settings.
-    *   **Senior Department Head:** Oversight of departmental documents, ability to manage permissions for their department, and access to reports.
-    *   **Department Head:** Manage documents within their department, assign responsibilities, and collaborate.
-    *   **Employees:** Create, upload, organize, search, access, and share documents according to their role's permissions.
-*   **Key Features (Prioritized):**
-    1.  Secure Login & Role-Based Access Control (RBAC)
-    2.  File Upload, Download, and Drag-and-Drop
-    3.  Comprehensive Document Search (Full-text, metadata)
-    4.  Version Control (Save, view, compare, revert)
-    5.  File/Folder Organization (Tags, Types, Correspondents, Folders)
-    6.  File Locking (Prevent concurrent editing)
-    7.  Sharing & Collaboration (Share files/folders, ratings)
-    8.  Embedded Document Viewer/Editor (Basic preview and inline editing)
-    9.  Notification System (Alerts for updates)
-    10. Secure Data Storage & Backup
-*   **Out of Scope (for Phase 1):**
-    *   Mobile Applications (iOS, Android)
-    *   Advanced Workflow Automation (complex approval chains)
-    *   Deep CRM/ERP Integration (beyond basic linking)
-    *   AI-Powered Predictive Tagging (beyond ML auto-tagging)
-    *   Customizable Dashboards (initially)
+DOCUMENT SOLUTIONS is a document management system (DMS) designed to provide a centralized, secure, and efficient platform for organizing, storing, retrieving, and collaborating on digital documents within an organization. The system aims to be classic, straightforward, and user-friendly, catering initially to desktop and laptop users.
 
-## Technology Stack
-*   **Backend:** **Django (Python)** - Chosen for its robustness, built-in admin, ORM, security features, and extensive ecosystem. Ideal for handling complex business logic and database interactions.
-*   **Frontend:** **React** - Selected for its component-based architecture, excellent performance, and large community. Provides a modern, responsive, and interactive user interface.
-*   **Database:** **PostgreSQL** - A powerful, open-source relational database known for its reliability, extensibility, and strong support for advanced data types (including JSONB for flexible metadata). Already running with pgAdmin 4.
-*   **API:** RESTful API (Django REST Framework) - Enables communication between Django backend and React frontend.
-*   **Authentication:** Django's built-in authentication system, potentially enhanced with 2FA for higher security.
-*   **File Storage:** Local filesystem storage managed by Django, with plans to integrate with cloud storage (e.g., AWS S3) in future phases for scalability and backup.
-*   **OCR:** Integrate **Tesseract OCR engine** via Python libraries (e.g., `pytesseract`) for text recognition.
-*   **Machine Learning:** Utilize lightweight ML models (e.g., scikit-learn) for automated tagging and classification where feasible.
+## 2. Goals & Objectives
 
-## High-Level Architecture
-1.  **Client (React):** Handles user interaction, rendering UI components, and making API calls to the backend.
-2.  **Server (Django):** Processes requests, executes business logic, interacts with the database, manages user sessions, handles file uploads/downloads, and orchestrates OCR/ML processes.
-3.  **Database (PostgreSQL):** Stores all structured data: users, roles, documents, metadata, versions, permissions, relationships, and audit logs.
-4.  **File Storage:** Physical storage of document files (PDFs, images, Office docs) separate from the database.
+*   **Primary Goal:** Develop a robust DMS named "DOCUMENT SOLUTIONS" that streamlines document lifecycle management.
+*   **Key Objectives:**
+    *   Provide a centralized repository for all organizational documents.
+    *   Enable rapid document search and retrieval.
+    *   Ensure secure access control and data integrity.
+    *   Facilitate efficient document collaboration and versioning.
+    *   Offer intuitive user experience for specified user roles.
 
-## Initial Design Philosophy
-*   **Modularity:** Build the system in distinct, reusable modules (e.g., `document`, `user`, `permission`, `search`).
-*   **Scalability:** Design database schemas and APIs to handle growth in users and documents.
-*   **Security First:** Implement security measures at every layer (authentication, authorization, data encryption, input validation).
-*   **Performance:** Optimize database queries and utilize caching where appropriate.
-*   **User-Centric:** Prioritize intuitive navigation, fast search, and a clean interface.
-*   **Extensibility:** Design with future features (like mobile apps, advanced workflows) in mind.
+## 3. Scope
 
-## UI/UX Design
-The user interface will follow an Adobe-style design pattern which provides:
-*   Professional dark theme interface with customizable panels
-*   Top application bar with menus and quick actions
-*   Collapsible left navigation panel
-*   Central work area for document viewing/interaction
-*   Right property panels for context-sensitive settings
-*   Bottom status bar for system information
+### In-Scope:
+*   User Management (System Administrator, Senior Department Head, Department Head, Employee).
+*   Document Capture (uploading digital files, scanning with OCR).
+*   Document Storage & Organization (folder structures, tags, basic metadata).
+*   Document Indexing (full-text and metadata).
+*   Document Search & Retrieval.
+*   Embedded Document Viewer & Editor.
+*   Versioning.
+*   File Locking.
+*   Basic Sharing capabilities (with specific users/groups).
+*   Annotation & Comments.
+*   Inform Mechanism (notifications).
+*   Files & Folders Rights / Granular Access Control.
+*   Basic Workflow Automation (e.g., document approval routing).
+*   Security Features (MFA, password policies).
+*   Document Linking.
 
-For detailed UI implementation guidelines, please refer to [ADOBE_STYLE_GUI_INTEGRATION.md](./ADOBE_STYLE_GUI_INTEGRATION.md).
+### Out-of-Scope (Initial Phase):
+*   Mobile accessibility (will be considered in future phases).
+*   Advanced Machine Learning for metadata beyond initial suggestions.
+*   Deep integration with external CRM packages (initial linking concepts will be present).
+*   Complex, multi-branching workflow automation (start with linear flows).
+*   Physical document archiving/disposal management (focus on digital content lifecycle).
+*   Geolocation-based access control.
 
-## Development Guidelines
-For detailed development guidelines, coding standards, and project rules, please refer to the [RULES.md](./RULES.md) file.
+## 4. User Roles & Permissions
 
-## Next Steps
-1.  Finalize the database schema design.
-2.  Set up the Django project and basic app structure.
-3.  Begin development of the core `Document` model and associated views/controllers.
-4.  Implement the React frontend based on the DesignRef.txt design.
+*   **System Administrator:** Full control over users, groups, system configurations, security, and all documents. Can define global policies and workflows.
+*   **Senior Department Head:** Manages users within their department, sets department-level folder structures and default permissions, can initiate and approve higher-level workflows. Broad access within their domain.
+*   **Department Head:** Manages employees within their sub-department, manages documents, initiates and participates in workflows, broader editing/sharing rights for departmental documents.
+*   **Employee:** Basic document upload, view, search, edit (on assigned documents), participate in workflows, annotate. Restricted access based on assigned permissions.
+
+## 5. Technology Stack
+
+*   **Programming Language:** Python
+*   **Backend Framework:** Django (REST API for frontend, admin panel for system management)
+*   **Frontend Framework:** React (Single Page Application - SPA)
+*   **Database Management System:** PostgreSQL (already running with pgAdmin 4)
+*   **OCR Engine:** Tesseract (likely integrated via a Python wrapper like `pytesseract`)
+*   **Document Viewing/Editing:** Consider existing libraries/tools for embedded viewing (e.g., PDF.js for PDFs, Office web viewers if self-hosting is viable, otherwise focus on file type compatibility). For editing, a basic text editor or integration with a lightweight online editor component.
+
+## 6. High-Level Architecture
+
+```mermaid
+graph TD
+    A[User (Desktop/Laptop)] -->|HTTPS| B(Frontend: React SPA)
+    B -->|REST API Calls| C(Backend: Django)
+    C -->|Database Operations| D(Database: PostgreSQL)
+    C -->|File Storage| E(File System / Object Storage)
+    C -->|OCR Processing| F(Tesseract Engine)
+    C -->|External Services (Optional)| G(Email/Notification Service)
+
+    D ---|Stores Metadata & Indexes| E
+    C ---|Manages Users & Permissions| D
+
+
+*Frontend (React): Handles user interface, interacts with the backend via REST APIs.
+*Backend (Django): Manages business logic, user authentication/authorization, data persistence, file operations, OCR integration, and workflow processing.
+*Database (PostgreSQL): Stores all metadata, user information, permissions, audit logs, and document indexes.
+*File Storage: Where the actual document binaries are stored (e.g., local file system for now, scalable to S3-like object storage later).
+*OCR Engine (Tesseract): Used by the backend for converting scanned image text into searchable text.
+
+## 7. Initial Development Strategy - Core First
+We will adopt an iterative development approach, starting with the most critical core functionalities to establish a Minimum Viable Product (MVP) and then progressively adding more advanced features.
+
+Core Build Focus:
+*User Authentication & Basic User Roles: Secure login, Admin, Department Head, Employee.
+*Basic Document Upload & Storage: Ability to upload PDF and common Office documents (Word, Excel) to a designated storage location.
+*Folder Creation & Navigation: A simple, hierarchical folder structure.
+*Basic Document Listing & Details: View documents within folders, display name, uploader, date.
+*Simple Document Search (by name): Find documents based on their filename.
+*Embedded PDF Viewer: View PDF documents directly in the browser.
+
+## 8. Future Considerations (Post-MVP)
+*Mobile responsive design.
+*Advanced ML for metadata auto-tagging.
+*Integration with other enterprise systems (CRM, HRIS).
+*Scalable object storage solution (e.g., AWS S3, MinIO).
+*Advanced auditing and reporting.
+*Enhanced workflow automation builder.
+*Offline access capabilities.
+
+## 9. Key Risks & Mitigation
+*Data Security: Implement robust authentication (MFA), granular access control, encryption (at rest/in transit), regular security audits.
+*Performance with Large Volumes: Optimize database queries, efficient indexing, consider document streaming for large files, scale backend.
+*Document Compatibility: Utilize well-supported libraries for viewing/editing common file types, gracefully handle unsupported formats.
+*User Adoption: Intuitive UI/UX, comprehensive user training, phased rollout, gather feedback regularly.
+*OCR Accuracy: Allow for manual correction of OCR results, provide fallback to image viewing.
