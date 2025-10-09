@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   DashboardIcon, 
   DocumentIcon, 
@@ -16,24 +16,26 @@ import {
   FolderIcon,
   ShareIcon,
   StarIcon,
-  HeartIcon
+  HeartIcon,
+  ChevronRightIcon,
+  ChevronDownIcon
 } from '../ui/Icons';
 
-const NavLink = ({ icon, label, isActive, count, onClick }) => (
+const NavLink = ({ icon, label, isActive, count, onClick, isCollapsed }) => (
   <a 
     href="#" 
-    className={`flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-      isActive ? 'bg-green-100 text-green-800' : 'text-gray-600 hover:bg-gray-100'
+    className={`flex items-center justify-between px-3 py-2 text-sm rounded transition-colors ${
+      isActive ? 'bg-gray-200 text-black font-medium' : 'text-gray-700 hover:bg-gray-100'
     }`}
     onClick={onClick}
   >
     <div className="flex items-center space-x-3">
       {icon}
-      <span>{label}</span>
+      {!isCollapsed && <span>{label}</span>}
     </div>
-    {count && (
+    {!isCollapsed && count && (
       <span className={`px-2 py-0.5 text-xs rounded-full ${
-        isActive ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-700'
+        isActive ? 'bg-gray-400 text-white' : 'bg-gray-200 text-gray-700'
       }`}>
         {count}
       </span>
@@ -41,26 +43,67 @@ const NavLink = ({ icon, label, isActive, count, onClick }) => (
   </a>
 );
 
+// Collapsible section component for YouTube-style sidebar
+const CollapsibleSection = ({ title, children, defaultOpen = true, isCollapsed }) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  
+  // When sidebar is collapsed, we want sections to be closed
+  React.useEffect(() => {
+    if (isCollapsed) {
+      setIsOpen(false);
+    }
+  }, [isCollapsed]);
+  
+  // When sidebar expands, restore the default open state
+  React.useEffect(() => {
+    if (!isCollapsed) {
+      setIsOpen(defaultOpen);
+    }
+  }, [isCollapsed, defaultOpen]);
+  
+  // In collapsed mode, don't show the section title or collapsible functionality
+  if (isCollapsed) {
+    return <div className="space-y-1">{children}</div>;
+  }
+  
+  return (
+    <div className="mb-2">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider hover:bg-gray-100 rounded"
+      >
+        <span>{title}</span>
+        {isOpen ? <ChevronDownIcon className="w-4 h-4" /> : <ChevronRightIcon className="w-4 h-4" />}
+      </button>
+      {isOpen && (
+        <div className="mt-1 space-y-1">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Icon mapping for different sidebar items
 const getIcon = (iconName) => {
   switch (iconName) {
-    case 'dashboard': return <DashboardIcon />;
-    case 'document': return <DocumentIcon />;
-    case 'inbox': return <InboxIcon />;
-    case 'clock': return <ClockIcon />;
-    case 'tag': return <TagIcon />;
-    case 'user-group': return <UserGroupIcon />;
-    case 'settings': return <SettingsIcon />;
-    case 'search': return <SearchIcon />;
-    case 'lock': return <LockIcon />;
-    case 'report': return <ReportIcon />;
-    case 'backup': return <BackupIcon />;
-    case 'notification': return <NotificationIcon />;
-    case 'folder': return <FolderIcon />;
-    case 'share': return <ShareIcon />;
-    case 'star': return <StarIcon />;
-    case 'heart': return <HeartIcon />;
-    default: return <DocumentIcon />;
+    case 'dashboard': return <DashboardIcon className="w-5 h-5" />;
+    case 'document': return <DocumentIcon className="w-5 h-5" />;
+    case 'inbox': return <InboxIcon className="w-5 h-5" />;
+    case 'clock': return <ClockIcon className="w-5 h-5" />;
+    case 'tag': return <TagIcon className="w-5 h-5" />;
+    case 'user-group': return <UserGroupIcon className="w-5 h-5" />;
+    case 'settings': return <SettingsIcon className="w-5 h-5" />;
+    case 'search': return <SearchIcon className="w-5 h-5" />;
+    case 'lock': return <LockIcon className="w-5 h-5" />;
+    case 'report': return <ReportIcon className="w-5 h-5" />;
+    case 'backup': return <BackupIcon className="w-5 h-5" />;
+    case 'notification': return <NotificationIcon className="w-5 h-5" />;
+    case 'folder': return <FolderIcon className="w-5 h-5" />;
+    case 'share': return <ShareIcon className="w-5 h-5" />;
+    case 'star': return <StarIcon className="w-5 h-5" />;
+    case 'heart': return <HeartIcon className="w-5 h-5" />;
+    default: return <DocumentIcon className="w-5 h-5" />;
   }
 };
 
@@ -257,51 +300,46 @@ const Sidebar = ({
   // Get the configuration for the current user role
   const config = sidebarConfig[userRole] || sidebarConfig['Employee'];
   
+  // Determine if sidebar is collapsed (not open)
+  const isCollapsed = !isOpen;
+  
   return (
     <>
-      {/* Mobile menu button */}
-      <button 
-        onClick={toggle} 
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md text-gray-600 bg-white shadow-md"
-      >
-        <MenuIcon />
-      </button>
-
-      {/* Sidebar */}
+      {/* YouTube-style sidebar - hidden by default, collapses when burger icon is toggled */}
       <aside 
-        className={`absolute lg:relative w-64 h-full flex-shrink-0 bg-white border-r border-gray-200 flex-col justify-between transition-transform duration-300 ease-in-out z-40 ${
+        className={`absolute lg:relative h-full flex-shrink-0 bg-white border-r border-gray-200 flex-col transition-all duration-300 ease-in-out z-40 ${
+          isOpen ? 'w-64' : 'w-16'
+        } ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0`}
+        } lg:translate-x-0 overflow-y-auto`}
       >
-        <div className="overflow-y-auto flex-grow h-full">
-          {config.title && (
-            <div className="h-16 flex items-center px-4 bg-green-600 text-white">
-              <DocumentIcon />
-              <span className="ml-3 text-xl font-bold">{config.title}</span>
+        <div className="p-3">
+          {config.title && !isCollapsed && (
+            <div className="h-12 flex items-center px-3 bg-red-600 text-white rounded mb-2">
+              <DocumentIcon className="w-5 h-5" />
+              <span className="ml-2 text-sm font-bold">{config.title}</span>
             </div>
           )}
-          <nav className="p-4 space-y-6">
+          <nav className="space-y-1">
             {config.sections.map((section, index) => (
-              <div key={index}>
-                <h4 className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  {section.name}
-                </h4>
-                <div className="mt-2 space-y-1">
-                  {section.items.map((item) => (
-                    <NavLink 
-                      key={item.id}
-                      icon={getIcon(item.icon)} 
-                      label={item.label} 
-                      count={item.count}
-                      isActive={activeSection === item.id} 
-                      onClick={() => onSectionChange(item.id)}
-                    />
-                  ))}
-                </div>
-              </div>
+              <CollapsibleSection key={index} title={isCollapsed ? '' : section.name} defaultOpen={!isCollapsed} isCollapsed={isCollapsed}>
+                {section.items.map((item) => (
+                  <NavLink 
+                    key={item.id}
+                    icon={getIcon(item.icon)} 
+                    label={item.label} 
+                    count={item.count}
+                    isActive={activeSection === item.id} 
+                    onClick={() => onSectionChange(item.id)}
+                    isCollapsed={isCollapsed}
+                  />
+                ))}
+              </CollapsibleSection>
             ))}
           </nav>
         </div>
+        
+        {/* Removed upload, new folder and settings buttons */}
       </aside>
     </>
   );

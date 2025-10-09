@@ -54,14 +54,15 @@ This document outlines the high-level direction, scope, technology stack, and in
 *   **Extensibility:** Design with future features (like mobile apps, advanced workflows) in mind.
 
 ## UI/UX Design
-The user interface is based on the DesignRef.txt reference design which provides:
-*   Clean, modern dashboard with intuitive navigation
-*   Responsive layout that works on desktop and laptop screens
-*   Component-based architecture for maintainability
-*   Consistent color scheme and typography
-*   Accessible design patterns
+The user interface will follow an Adobe-style design pattern which provides:
+*   Professional dark theme interface with customizable panels
+*   Top application bar with menus and quick actions
+*   Collapsible left navigation panel
+*   Central work area for document viewing/interaction
+*   Right property panels for context-sensitive settings
+*   Bottom status bar for system information
 
-For detailed UI implementation guidelines, please refer to [UI_DESIGN_INTEGRATION.md](./UI_DESIGN_INTEGRATION.md).
+For detailed UI implementation guidelines, please refer to [ADOBE_STYLE_GUI_INTEGRATION.md](./ADOBE_STYLE_GUI_INTEGRATION.md).
 
 ## Development Guidelines
 For detailed development guidelines, coding standards, and project rules, please refer to the [RULES.md](./RULES.md) file.

@@ -151,6 +151,18 @@ Before starting any task, please read and follow the guidelines in [RULES.md](./
 *   [x] Enhance header with system name, expanded search bar, and notification bell
 *   [x] Add navigation menu below header with role-based menu options
 
+### Task 20: Adobe-Style GUI Implementation
+*   [ ] Update global styling to use dark theme with Adobe-like color scheme
+*   [ ] Redesign the application bar with menus and quick actions
+*   [ ] Implement collapsible left navigation panel
+*   [ ] Create right property panels for document management
+*   [ ] Add bottom status bar with system information
+*   [ ] Update existing components to fit the new layout
+*   [ ] Ensure responsive design for different screen sizes
+*   [ ] Maintain role-based access control in the new interface
+*   [ ] Conduct usability testing with new interface
+*   [ ] Optimize performance of new components
+
 ## Phase 4: Testing & Deployment (Week 9+)
 
 ### Task 16: Testing
