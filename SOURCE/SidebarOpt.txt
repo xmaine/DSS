@@ -18,20 +18,20 @@ Okay, excellent point. A clean, role-based sidebar is crucial for a user-friendl
 *   **Files** (Browse and manage all documents/folders)
 *   **Users** (Manage user accounts, roles, groups)
 *   **Types** (Manage Document Types, Correspondents)
-*   **Perms** (Manage Global Permissions & Access Control)
+*   **Permsission** (Manage Global Permissions & Access Control)
 *   **Workflows** (Define and manage workflow templates)
 *   **Logs** (System Audit Logs)
-*   **Config** (System Configuration & Settings)
+*   **Configuration** (System Configuration & Settings)
 
 #### 2. Senior Department Head Sidebar
 
 *   **Home**
 *   **Dash** (Departmental Dashboard/Overview)
 *   **Files** (Browse and manage all documents/folders in their domain)
-*   **DeptUsers** (Manage users within their department)
+*   **Department Users** (Manage users within their department)
 *   **Workflows** (Monitor/initiate departmental workflows)
 *   **Shared** (Documents shared with/by them)
-*   **Notifs** (Notifications)
+*   **Notifications** (Notifications)
 
 #### 3. Department Head Sidebar
 
@@ -42,17 +42,17 @@ Okay, excellent point. A clean, role-based sidebar is crucial for a user-friendl
 *   **Team** (Manage employees in their sub-department, specific permissions)
 *   **Workflows** (Monitor/participate in relevant workflows)
 *   **Shared** (Documents shared with/by them)
-*   **Notifs** (Notifications)
+*   **Notifications** (Notifications)
 
 #### 4. Employee Sidebar
 
 *   **Home**
 *   **Files** (Browse and access allowed documents/folders)
 *   **Upload** (Upload new documents)
-*   **MyDocs** (Documents they own/uploaded)
+*   **My Documents** (Documents they own/uploaded)
 *   **Shared** (Documents shared with them)
 *   **Workflows** (View/participate in assigned workflows)
-*   **Notifs** (Notifications)
+*   **Notifications** (Notifications)
 
 ---
 

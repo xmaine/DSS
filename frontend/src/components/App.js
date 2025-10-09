@@ -18,7 +18,6 @@ const App = () => {
 
   const handleSectionChange = (section) => {
     setActiveSection(section);
-    setSidebarOpen(false); // Close sidebar on mobile when selecting a section
   };
 
   const handleRoleChange = (role) => {

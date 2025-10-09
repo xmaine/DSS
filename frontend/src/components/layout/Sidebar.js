@@ -25,7 +25,10 @@ const NavLink = ({ icon, label, isActive, count, onClick, isCollapsed }) => (
     className={`flex items-center justify-between px-3 py-2 text-sm rounded transition-colors w-full text-left ${
       isActive ? 'bg-gray-200 text-black font-medium' : 'text-gray-700 hover:bg-gray-100'
     }`}
-    onClick={onClick}
+    onClick={(e) => {
+      e.stopPropagation();
+      onClick();
+    }}
   >
     <div className="flex items-center space-x-3">
       {icon}
