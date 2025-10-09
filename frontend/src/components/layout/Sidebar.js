@@ -49,15 +49,11 @@ const CollapsibleSection = ({ title, children, defaultOpen = true, isCollapsed }
   const [isOpen, setIsOpen] = useState(defaultOpen);
   
   // When sidebar is collapsed, we want sections to be closed
+  // When sidebar expands, restore the default open state
   React.useEffect(() => {
     if (isCollapsed) {
       setIsOpen(false);
-    }
-  }, [isCollapsed]);
-  
-  // When sidebar expands, restore the default open state
-  React.useEffect(() => {
-    if (!isCollapsed) {
+    } else {
       setIsOpen(defaultOpen);
     }
   }, [isCollapsed, defaultOpen]);
@@ -114,7 +110,7 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home',
+        name: 'Home/Dashboard',
         items: [
           { id: 'dashboard', label: 'Dash', icon: 'dashboard' }
         ]
@@ -137,7 +133,7 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home',
+        name: 'Home/Dashboard',
         items: [
           { id: 'dashboard', label: 'Dash', icon: 'dashboard' }
         ]
@@ -158,7 +154,7 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home',
+        name: 'Home/Dashboard',
         items: [
           { id: 'dashboard', label: 'Dash', icon: 'dashboard' }
         ]
@@ -180,7 +176,7 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home',
+        name: 'Home/Dashboard',
         items: [
           { id: 'dashboard', label: 'Home', icon: 'dashboard' }
         ]
