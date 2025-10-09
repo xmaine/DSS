@@ -21,12 +21,6 @@ const App = () => {
     setSidebarOpen(false); // Close sidebar on mobile when selecting a section
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    console.log('Searching for:', searchQuery);
-    // In a real app, this would call your search API
-  };
-
   const handleRoleChange = (role) => {
     setUserRole(role);
     // Reset to dashboard when changing roles
@@ -41,109 +35,131 @@ const App = () => {
       case 'shared-with-me':
       case 'recent-documents':
       case 'document-library':
+      case 'my-owned-documents':
         return <DocumentsPage />;
       case 'my-folders':
       case 'shared-folders':
       case 'all-folders':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Folder management page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Folder management page will be implemented here.</p>
           </div>
         );
       case 'user-management':
+      case 'department-users':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">User management page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">User management page will be implemented here.</p>
           </div>
         );
       case 'role-management':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Role management page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Role management page will be implemented here.</p>
           </div>
         );
       case 'permission-settings':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Permission settings page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Permission settings page will be implemented here.</p>
           </div>
         );
       case 'document-types':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Document types page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Document types page will be implemented here.</p>
           </div>
         );
       case 'tags-correspondents':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Tags and correspondents page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Tags and correspondents page will be implemented here.</p>
           </div>
         );
       case 'version-history':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Version history page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Version history page will be implemented here.</p>
           </div>
         );
       case 'file-locking':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">File locking page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">File locking page will be implemented here.</p>
           </div>
         );
       case 'notifications':
+      case 'notifs':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Notifications page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Notifications page will be implemented here.</p>
           </div>
         );
       case 'reports':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Reports page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Reports page will be implemented here.</p>
           </div>
         );
       case 'settings':
+      case 'system-config':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Settings page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Settings page will be implemented here.</p>
           </div>
         );
       case 'upload-document':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Upload document page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Upload document page will be implemented here.</p>
           </div>
         );
       case 'create-folder':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Create folder page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Create folder page will be implemented here.</p>
           </div>
         );
       case 'share-document':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Share document page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Share document page will be implemented here.</p>
           </div>
         );
       case 'rate-document':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Rate document page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Rate document page will be implemented here.</p>
           </div>
         );
       case 'link-document':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Link document page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Link document page will be implemented here.</p>
           </div>
         );
       case 'search':
         return (
-          <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
-            <p className="text-gray-200">Search page will be implemented here.</p>
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Search page will be implemented here.</p>
+          </div>
+        );
+      case 'workflows':
+        return (
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Workflows page will be implemented here.</p>
+          </div>
+        );
+      case 'audit-logs':
+        return (
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Audit logs page will be implemented here.</p>
+          </div>
+        );
+      case 'team-management':
+        return (
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <p className="text-gray-700">Team management page will be implemented here.</p>
           </div>
         );
       default:
@@ -276,6 +292,13 @@ const App = () => {
                 {activeSection === 'share-document' && 'Share Document/Folder'}
                 {activeSection === 'rate-document' && 'Rate Document'}
                 {activeSection === 'link-document' && 'Link Document'}
+                {activeSection === 'department-users' && 'Department Users'}
+                {activeSection === 'system-config' && 'System Configuration'}
+                {activeSection === 'workflows' && 'Workflows'}
+                {activeSection === 'audit-logs' && 'Audit Logs'}
+                {activeSection === 'team-management' && 'Team Management'}
+                {activeSection === 'my-owned-documents' && 'My Documents'}
+                {activeSection === 'notifs' && 'Notifications'}
               </h1>
             </div>
             {renderActivePage()}

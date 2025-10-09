@@ -7,7 +7,6 @@ import {
   TagIcon, 
   UserGroupIcon, 
   SettingsIcon,
-  MenuIcon,
   SearchIcon,
   LockIcon,
   ReportIcon,
@@ -22,9 +21,8 @@ import {
 } from '../ui/Icons';
 
 const NavLink = ({ icon, label, isActive, count, onClick, isCollapsed }) => (
-  <a 
-    href="#" 
-    className={`flex items-center justify-between px-3 py-2 text-sm rounded transition-colors ${
+  <button 
+    className={`flex items-center justify-between px-3 py-2 text-sm rounded transition-colors w-full text-left ${
       isActive ? 'bg-gray-200 text-black font-medium' : 'text-gray-700 hover:bg-gray-100'
     }`}
     onClick={onClick}
@@ -40,7 +38,7 @@ const NavLink = ({ icon, label, isActive, count, onClick, isCollapsed }) => (
         {count}
       </span>
     )}
-  </a>
+  </button>
 );
 
 // Collapsible section component for YouTube-style sidebar
@@ -107,53 +105,27 @@ const getIcon = (iconName) => {
   }
 };
 
-// Sidebar configuration based on user roles from REF-Sidebar.txt
+// Sidebar configuration based on user roles from SidebarOpt.txt
 const sidebarConfig = {
   'System Administrator': {
     title: '',
     sections: [
       {
-        name: 'Home / Dashboard',
+        name: 'Home',
         items: [
-          { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
+          { id: 'dashboard', label: 'Dash', icon: 'dashboard' }
         ]
       },
       {
-        name: 'Documents',
+        name: 'Navigation',
         items: [
-          { id: 'my-documents', label: 'My Documents', icon: 'document' },
-          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' },
-          { id: 'recent-documents', label: 'Recent Documents', icon: 'clock' },
-          { id: 'search', label: 'Search', icon: 'search' },
-          { id: 'document-library', label: 'Document Library', icon: 'document' }
-        ]
-      },
-      {
-        name: 'Folders',
-        items: [
-          { id: 'my-folders', label: 'My Folders', icon: 'folder' },
-          { id: 'shared-folders', label: 'Shared Folders', icon: 'share' },
-          { id: 'all-folders', label: 'All Folders', icon: 'folder' }
-        ]
-      },
-      {
-        name: 'Management',
-        items: [
-          { id: 'user-management', label: 'User Management', icon: 'user-group' },
-          { id: 'role-management', label: 'Role Management', icon: 'user-group' },
-          { id: 'permission-settings', label: 'Permission Settings', icon: 'settings' },
-          { id: 'document-types', label: 'Document Types', icon: 'document' },
-          { id: 'tags-correspondents', label: 'Tags & Correspondents', icon: 'tag' }
-        ]
-      },
-      {
-        name: 'Tools',
-        items: [
-          { id: 'version-history', label: 'Version History', icon: 'document' },
-          { id: 'file-locking', label: 'File Locking', icon: 'lock' },
-          { id: 'notifications', label: 'Notifications', icon: 'notification' },
-          { id: 'reports', label: 'Reports', icon: 'report' },
-          { id: 'settings', label: 'Settings', icon: 'settings' }
+          { id: 'my-documents', label: 'Files', icon: 'document' },
+          { id: 'user-management', label: 'Users', icon: 'user-group' },
+          { id: 'document-types', label: 'Types', icon: 'document' },
+          { id: 'permission-settings', label: 'Perms', icon: 'settings' },
+          { id: 'workflows', label: 'Workflows', icon: 'backup' },
+          { id: 'audit-logs', label: 'Logs', icon: 'report' },
+          { id: 'system-config', label: 'Config', icon: 'settings' }
         ]
       }
     ]
@@ -162,45 +134,19 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home / Dashboard',
+        name: 'Home',
         items: [
-          { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
+          { id: 'dashboard', label: 'Dash', icon: 'dashboard' }
         ]
       },
       {
-        name: 'Documents',
+        name: 'Navigation',
         items: [
-          { id: 'my-documents', label: 'My Documents', icon: 'document' },
-          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' },
-          { id: 'recent-documents', label: 'Recent Documents', icon: 'clock' },
-          { id: 'search', label: 'Search', icon: 'search' },
-          { id: 'document-library', label: 'Document Library', icon: 'document' }
-        ]
-      },
-      {
-        name: 'Folders',
-        items: [
-          { id: 'my-folders', label: 'My Folders', icon: 'folder' },
-          { id: 'shared-folders', label: 'Shared Folders', icon: 'share' },
-          { id: 'all-folders', label: 'All Folders', icon: 'folder' }
-        ]
-      },
-      {
-        name: 'Management',
-        items: [
-          { id: 'permission-settings', label: 'Permission Settings', icon: 'settings' },
-          { id: 'document-types', label: 'Document Types', icon: 'document' },
-          { id: 'tags-correspondents', label: 'Tags & Correspondents', icon: 'tag' }
-        ]
-      },
-      {
-        name: 'Tools',
-        items: [
-          { id: 'version-history', label: 'Version History', icon: 'document' },
-          { id: 'file-locking', label: 'File Locking', icon: 'lock' },
-          { id: 'notifications', label: 'Notifications', icon: 'notification' },
-          { id: 'reports', label: 'Reports', icon: 'report' },
-          { id: 'settings', label: 'Settings', icon: 'settings' }
+          { id: 'my-documents', label: 'Files', icon: 'document' },
+          { id: 'department-users', label: 'DeptUsers', icon: 'user-group' },
+          { id: 'workflows', label: 'Workflows', icon: 'backup' },
+          { id: 'shared-with-me', label: 'Shared', icon: 'share' },
+          { id: 'notifications', label: 'Notifs', icon: 'notification' }
         ]
       }
     ]
@@ -209,44 +155,20 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home / Dashboard',
+        name: 'Home',
         items: [
-          { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
+          { id: 'dashboard', label: 'Dash', icon: 'dashboard' }
         ]
       },
       {
-        name: 'Documents',
+        name: 'Navigation',
         items: [
-          { id: 'my-documents', label: 'My Documents', icon: 'document' },
-          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' },
-          { id: 'recent-documents', label: 'Recent Documents', icon: 'clock' },
-          { id: 'search', label: 'Search', icon: 'search' },
-          { id: 'document-library', label: 'Document Library', icon: 'document' }
-        ]
-      },
-      {
-        name: 'Folders',
-        items: [
-          { id: 'my-folders', label: 'My Folders', icon: 'folder' },
-          { id: 'shared-folders', label: 'Shared Folders', icon: 'share' },
-          { id: 'all-folders', label: 'All Folders', icon: 'folder' }
-        ]
-      },
-      {
-        name: 'Management',
-        items: [
-          { id: 'permission-settings', label: 'Permission Settings', icon: 'settings' },
-          { id: 'document-types', label: 'Document Types', icon: 'document' },
-          { id: 'tags-correspondents', label: 'Tags & Correspondents', icon: 'tag' }
-        ]
-      },
-      {
-        name: 'Tools',
-        items: [
-          { id: 'version-history', label: 'Version History', icon: 'document' },
-          { id: 'file-locking', label: 'File Locking', icon: 'lock' },
-          { id: 'notifications', label: 'Notifications', icon: 'notification' },
-          { id: 'settings', label: 'Settings', icon: 'settings' }
+          { id: 'my-documents', label: 'Files', icon: 'document' },
+          { id: 'upload-document', label: 'Upload', icon: 'inbox' },
+          { id: 'team-management', label: 'Team', icon: 'user-group' },
+          { id: 'workflows', label: 'Workflows', icon: 'backup' },
+          { id: 'shared-with-me', label: 'Shared', icon: 'share' },
+          { id: 'notifications', label: 'Notifs', icon: 'notification' }
         ]
       }
     ]
@@ -255,35 +177,20 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home / Dashboard',
+        name: 'Home',
         items: [
-          { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
+          { id: 'dashboard', label: 'Home', icon: 'dashboard' }
         ]
       },
       {
-        name: 'Documents',
+        name: 'Navigation',
         items: [
-          { id: 'my-documents', label: 'My Documents', icon: 'document' },
-          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' },
-          { id: 'recent-documents', label: 'Recent Documents', icon: 'clock' },
-          { id: 'search', label: 'Search', icon: 'search' },
-          { id: 'document-library', label: 'Document Library', icon: 'document' }
-        ]
-      },
-      {
-        name: 'Folders',
-        items: [
-          { id: 'my-folders', label: 'My Folders', icon: 'folder' },
-          { id: 'shared-folders', label: 'Shared Folders', icon: 'share' }
-        ]
-      },
-      {
-        name: 'Tools',
-        items: [
-          { id: 'version-history', label: 'Version History', icon: 'document' },
-          { id: 'file-locking', label: 'File Locking', icon: 'lock' },
-          { id: 'notifications', label: 'Notifications', icon: 'notification' },
-          { id: 'settings', label: 'Settings', icon: 'settings' }
+          { id: 'my-documents', label: 'Files', icon: 'document' },
+          { id: 'upload-document', label: 'Upload', icon: 'inbox' },
+          { id: 'my-owned-documents', label: 'MyDocs', icon: 'document' },
+          { id: 'shared-with-me', label: 'Shared', icon: 'share' },
+          { id: 'workflows', label: 'Workflows', icon: 'backup' },
+          { id: 'notifications', label: 'Notifs', icon: 'notification' }
         ]
       }
     ]
