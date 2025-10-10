@@ -2,7 +2,7 @@ import os
 from django.conf import settings
 from django.db import connection
 from .models import Document, Tag, Correspondent, DocumentType
-from processing.models import EmailAccount, Workflow
+from processing.models import WorkflowTemplate
 from typing import Dict, Any, Union
 
 class SystemHealthCheckService:
@@ -105,18 +105,18 @@ class SystemHealthCheckService:
         """
         try:
             total_documents: int = Document.objects.count()
-            processed_documents: int = Document.objects.filter(processed=True).count()
-            pending_documents: int = Document.objects.filter(ocr_status='pending').count()
+            # processed_documents: int = Document.objects.filter(processed=True).count()
+            # pending_documents: int = Document.objects.filter(ocr_status='pending').count()
             
             # Check for documents with missing files (simplified)
             missing_files: int = 0
             for document in Document.objects.all()[:100]:  # Check first 100 for performance
-                if not os.path.exists(document.file.path):
+                if document.current_version and not os.path.exists(document.current_version.file.path):
                     missing_files += 1
             
             return {
                 'healthy': missing_files == 0,
-                'details': f'{total_documents} total documents, {processed_documents} processed, {pending_documents} pending',
+                'details': f'{total_documents} total documents, {missing_files} missing files',
                 'missing_files': missing_files
             }
         except Exception as e:
@@ -134,12 +134,11 @@ class SystemHealthCheckService:
             dict: Processing system health status and details.
         """
         try:
-            email_accounts: int = EmailAccount.objects.filter(active=True).count()
-            workflows: int = Workflow.objects.filter(active=True).count()
+            workflows: int = WorkflowTemplate.objects.filter(is_active=True).count()
             
             return {
                 'healthy': True,
-                'details': f'{email_accounts} active email accounts, {workflows} active workflows'
+                'details': f'{workflows} active workflows'
             }
         except Exception as e:
             return {
@@ -177,9 +176,9 @@ class SystemHealthCheckService:
         stats: Dict[str, Any] = {
             'documents': {
                 'total': Document.objects.count(),
-                'processed': Document.objects.filter(processed=True).count(),
-                'unprocessed': Document.objects.filter(processed=False).count(),
-                'archived': Document.objects.filter(archived=True).count()
+                # 'processed': Document.objects.filter(processed=True).count(),
+                # 'unprocessed': Document.objects.filter(processed=False).count(),
+                'active': Document.objects.filter(is_active=True).count()
             },
             'classification': {
                 'tags': Tag.objects.count(),
@@ -187,8 +186,7 @@ class SystemHealthCheckService:
                 'document_types': DocumentType.objects.count()
             },
             'processing': {
-                'email_accounts': EmailAccount.objects.filter(active=True).count(),
-                'workflows': Workflow.objects.filter(active=True).count()
+                'workflows': WorkflowTemplate.objects.filter(is_active=True).count()
             },
             'storage': {
                 'media_root': settings.MEDIA_ROOT,
@@ -200,13 +198,16 @@ class SystemHealthCheckService:
     
     def _calculate_total_documents_size(self) -> int:
         """
-        Calculate total size of all documents.
+        Calculate total size of all document files.
         
         Returns:
-            int: Total size of all documents in bytes.
+            int: Total size in bytes.
         """
-        total_size: int = 0
-        for document in Document.objects.all():
-            if document.file_size:
-                total_size += document.file_size
-        return total_size
+        try:
+            total_size: int = 0
+            for document in Document.objects.all():
+                if document.current_version and os.path.exists(document.current_version.file.path):
+                    total_size += document.current_version.file_size
+            return total_size
+        except Exception:
+            return 0

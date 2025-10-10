@@ -17,22 +17,21 @@ Okay, excellent point. A clean, role-based sidebar is crucial for a user-friendl
 *   **Files** (Browse and manage all documents/folders)
 *   **Users** (Manage user accounts, roles, groups)
 *   **Types** (Manage Document Types, Correspondents)
-*   **Permsission** (Manage Global Permissions & Access Control)
+*   **Perms** (Manage Global Permissions & Access Control)
 *   **Workflows** (Define and manage workflow templates)
 *   **Logs** (System Audit Logs)
-*   **Configuration** (System Configuration & Settings)
+*   **Config** (System Configuration & Settings)
 
 #### 2. Senior Department Head Sidebar
 
 *   **Home/Dashboard** (Departmental Dashboard/Overview)
 *   **Files** (Browse and manage all documents/folders in their domain)
-*   **Department Users** (Manage users within their department)
+*   **DeptUsers** (Manage users within their department)
 *   **Workflows** (Monitor/initiate departmental workflows)
 *   **Shared** (Documents shared with/by them)
-*   **Notifications** (Notifications)
+*   **Notifs** (Notifications)
 
 #### 3. Department Head Sidebar
-
 
 *   **Home/Dashboard** (Departmental Dashboard/Overview)
 *   **Files** (Browse and manage documents/folders within their sub-department)
@@ -40,18 +39,24 @@ Okay, excellent point. A clean, role-based sidebar is crucial for a user-friendl
 *   **Team** (Manage employees in their sub-department, specific permissions)
 *   **Workflows** (Monitor/participate in relevant workflows)
 *   **Shared** (Documents shared with/by them)
-*   **Notifications** (Notifications)
+*   **Notifs** (Notifications)
 
 #### 4. Employee Sidebar
 
 *   **Home/Dashboard** (Dashboard/Overview)
 *   **Files** (Browse and access allowed documents/folders)
 *   **Upload** (Upload new documents)
-*   **My Documents** (Documents they own/uploaded)
+*   **MyDocs** (Documents they own/uploaded)
 *   **Shared** (Documents shared with them)
 *   **Workflows** (View/participate in assigned workflows)
-*   **Notifications** (Notifications)
+*   **Notifs** (Notifications)
 
 ---
 
 This structure ensures that each user role sees a streamlined set of options relevant to their responsibilities, enhancing usability and reducing clutter.
+
+**Implementation Status:**
+*   System Administrator sidebar: **COMPLETED**
+*   Senior Department Head sidebar: **IN PROGRESS**
+*   Department Head sidebar: **COMPLETED**
+*   Employee sidebar: **COMPLETED**

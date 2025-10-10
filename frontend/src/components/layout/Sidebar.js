@@ -110,9 +110,9 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home/Dashboard',
+        name: 'Home',
         items: [
-          { id: 'dashboard', label: 'Dash', icon: 'dashboard' }
+          { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
         ]
       },
       {
@@ -121,10 +121,11 @@ const sidebarConfig = {
           { id: 'my-documents', label: 'Files', icon: 'document' },
           { id: 'user-management', label: 'Users', icon: 'user-group' },
           { id: 'document-types', label: 'Types', icon: 'document' },
-          { id: 'permission-settings', label: 'Perms', icon: 'settings' },
+          { id: 'tags-correspondents', label: 'Tags & Correspondents', icon: 'tag' },
+          { id: 'permission-settings', label: 'Permission', icon: 'settings' },
           { id: 'workflows', label: 'Workflows', icon: 'backup' },
           { id: 'audit-logs', label: 'Logs', icon: 'report' },
-          { id: 'system-config', label: 'Config', icon: 'settings' }
+          { id: 'system-config', label: 'Configurations', icon: 'settings' }
         ]
       }
     ]
@@ -133,19 +134,19 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home/Dashboard',
+        name: 'Home',
         items: [
-          { id: 'dashboard', label: 'Dash', icon: 'dashboard' }
+          { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
         ]
       },
       {
         name: 'Navigation',
         items: [
           { id: 'my-documents', label: 'Files', icon: 'document' },
-          { id: 'department-users', label: 'DeptUsers', icon: 'user-group' },
+          { id: 'department-users', label: 'Department Users', icon: 'user-group' },
           { id: 'workflows', label: 'Workflows', icon: 'backup' },
           { id: 'shared-with-me', label: 'Shared', icon: 'share' },
-          { id: 'notifications', label: 'Notifs', icon: 'notification' }
+          { id: 'notifications', label: 'Notifications', icon: 'notification' }
         ]
       }
     ]
@@ -154,9 +155,9 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home/Dashboard',
+        name: 'Home',
         items: [
-          { id: 'dashboard', label: 'Dash', icon: 'dashboard' }
+          { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
         ]
       },
       {
@@ -167,7 +168,7 @@ const sidebarConfig = {
           { id: 'team-management', label: 'Team', icon: 'user-group' },
           { id: 'workflows', label: 'Workflows', icon: 'backup' },
           { id: 'shared-with-me', label: 'Shared', icon: 'share' },
-          { id: 'notifications', label: 'Notifs', icon: 'notification' }
+          { id: 'notifications', label: 'Notifications', icon: 'notification' }
         ]
       }
     ]
@@ -176,9 +177,9 @@ const sidebarConfig = {
     title: '',
     sections: [
       {
-        name: 'Home/Dashboard',
+        name: 'Home',
         items: [
-          { id: 'dashboard', label: 'Home', icon: 'dashboard' }
+          { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' }
         ]
       },
       {
@@ -186,10 +187,10 @@ const sidebarConfig = {
         items: [
           { id: 'my-documents', label: 'Files', icon: 'document' },
           { id: 'upload-document', label: 'Upload', icon: 'inbox' },
-          { id: 'my-owned-documents', label: 'MyDocs', icon: 'document' },
+          { id: 'my-owned-documents', label: 'My Documents', icon: 'document' },
           { id: 'shared-with-me', label: 'Shared', icon: 'share' },
           { id: 'workflows', label: 'Workflows', icon: 'backup' },
-          { id: 'notifications', label: 'Notifs', icon: 'notification' }
+          { id: 'notifications', label: 'Notifications', icon: 'notification' }
         ]
       }
     ]

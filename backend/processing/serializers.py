@@ -1,28 +1,18 @@
 from rest_framework import serializers
-from .models import EmailAccount, EmailRule, Workflow, WorkflowStep
-from documents.serializers import TagSerializer, CorrespondentSerializer, DocumentTypeSerializer
-
-class EmailAccountSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EmailAccount
-        fields = '__all__'
-
-class EmailRuleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EmailRule
-        fields = '__all__'
+from .models import WorkflowTemplate, WorkflowStep
+from documents.serializers import TagSerializer, DocumentTypeSerializer
 
 class WorkflowStepSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, read_only=True)
-    document_type = DocumentTypeSerializer(read_only=True)
+    # tags = TagSerializer(many=True, read_only=True)
+    # document_type = DocumentTypeSerializer(read_only=True)
     
     class Meta:
         model = WorkflowStep
         fields = '__all__'
 
-class WorkflowSerializer(serializers.ModelSerializer):
+class WorkflowTemplateSerializer(serializers.ModelSerializer):
     steps = WorkflowStepSerializer(many=True, read_only=True)
     
     class Meta:
-        model = Workflow
+        model = WorkflowTemplate
         fields = '__all__'

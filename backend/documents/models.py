@@ -1,141 +1,188 @@
+import uuid
 from django.db import models
-from django.contrib.auth.models import User
 from typing import Any
 
-class Tag(models.Model):
-    """Model representing a tag that can be applied to documents."""
-    
-    name: models.CharField = models.CharField(max_length=100, unique=True)
-    color: models.CharField = models.CharField(max_length=7, default='#000000')  # Hex color code
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self) -> str:
-        """
-        Return a string representation of the tag.
-        
-        Returns:
-            str: The name of the tag.
-        """
-        return self.name
+# Use the custom user model
+from users.models import CustomUser
 
-class Correspondent(models.Model):
-    """Model representing a correspondent (sender/recipient) of documents."""
+# For backward compatibility, we'll alias CustomUser to User
+User = CustomUser
+
+class Folder(models.Model):
+    """Model representing a folder in the document hierarchy."""
     
-    name: models.CharField = models.CharField(max_length=255, unique=True)
-    email: models.EmailField = models.EmailField(blank=True, null=True)
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=255)
+    parent_folder = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subfolders')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_folders')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    path = models.TextField()  # Materialized path for efficient hierarchy queries
     
-    def __str__(self) -> str:
-        """
-        Return a string representation of the correspondent.
-        
-        Returns:
-            str: The name of the correspondent.
-        """
+    def __str__(self):
         return self.name
 
 class DocumentType(models.Model):
     """Model representing a type/category of document."""
     
-    name: models.CharField = models.CharField(max_length=100, unique=True)
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
     
-    def __str__(self) -> str:
-        """
-        Return a string representation of the document type.
-        
-        Returns:
-            str: The name of the document type.
-        """
+    def __str__(self):
+        return self.name
+
+class Correspondent(models.Model):
+    """Model representing a correspondent (sender/recipient) of documents."""
+    
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
+    
+    def __str__(self):
+        return self.name
+
+class Tag(models.Model):
+    """Model representing a tag that can be applied to documents."""
+    
+    name = models.CharField(max_length=100, unique=True)
+    
+    def __str__(self):
         return self.name
 
 class Document(models.Model):
     """Model representing a document in the system."""
     
-    title: models.CharField = models.CharField(max_length=255)
-    description: models.TextField = models.TextField(blank=True)
-    file: models.FileField = models.FileField(upload_to='documents/')
-    uploaded_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    updated_at: models.DateTimeField = models.DateTimeField(auto_now=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, blank=True, related_name='documents')
+    document_type = models.ForeignKey(DocumentType, on_delete=models.SET_NULL, null=True, blank=True)
+    correspondent = models.ForeignKey(Correspondent, on_delete=models.SET_NULL, null=True, blank=True)
+    uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name='uploaded_documents')
+    current_version = models.ForeignKey('DocumentVersion', on_delete=models.SET_NULL, null=True, blank=True, related_name='current_for_documents')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    locked_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='locked_documents')
+    locked_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    extracted_text = models.TextField(blank=True, null=True)
+    tags = models.ManyToManyField(Tag, through='DocumentTag')
     
-    # Classification fields
-    correspondent: models.ForeignKey = models.ForeignKey(Correspondent, on_delete=models.SET_NULL, null=True, blank=True)
-    document_type: models.ForeignKey = models.ForeignKey(DocumentType, on_delete=models.SET_NULL, null=True, blank=True)
-    tags: models.ManyToManyField = models.ManyToManyField(Tag, blank=True)
-    
-    # OCR and processing fields
-    content: models.TextField = models.TextField(blank=True)  # OCR extracted text
-    archived_file: models.FileField = models.FileField(upload_to='archived/', blank=True, null=True)  # PDF/A version
-    processed: models.BooleanField = models.BooleanField(default=False)
-    ocr_status: models.CharField = models.CharField(
-        max_length=20,
-        choices=[
-            ('pending', 'Pending'),
-            ('processing', 'Processing'),
-            ('completed', 'Completed'),
-            ('failed', 'Failed'),
-        ],
-        default='pending'
-    )
-    
-    # Metadata
-    original_filename: models.CharField = models.CharField(max_length=255, blank=True)
-    file_size: models.BigIntegerField = models.BigIntegerField(null=True, blank=True)
-    mime_type: models.CharField = models.CharField(max_length=100, blank=True)
-    
-    # Workflow fields
-    archived: models.BooleanField = models.BooleanField(default=False)
-    
-    def __str__(self) -> str:
-        """
-        Return a string representation of the document.
-        
-        Returns:
-            str: The title of the document.
-        """
-        return self.title
+    def __str__(self):
+        return self.name
 
-class DocumentPermission(models.Model):
-    """Model representing permissions for a document."""
+class DocumentTag(models.Model):
+    """Model representing the many-to-many relationship between documents and tags."""
     
-    PERMISSION_LEVELS: list[tuple[str, str]] = [
-        ('view', 'View Only'),
-        ('edit', 'Edit'),
-        ('manage', 'Manage'),
-    ]
+    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
     
-    document: models.ForeignKey = models.ForeignKey(Document, on_delete=models.CASCADE)
-    user: models.ForeignKey = models.ForeignKey(User, on_delete=models.CASCADE)
-    permission_level: models.CharField = models.CharField(max_length=10, choices=PERMISSION_LEVELS)
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        unique_together = ('document', 'tag')
+
+class DocumentVersion(models.Model):
+    """Model representing a version of a document."""
+    
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='versions')
+    version_number = models.DecimalField(max_digits=5, decimal_places=2)
+    file = models.FileField(upload_to='documents/')
+    file_size = models.BigIntegerField()
+    file_type = models.CharField(max_length=50)
+    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    checksum = models.CharField(max_length=64, blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
+    is_current = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"{self.document.name} v{self.version_number}"
+
+class DocumentRating(models.Model):
+    """Model representing a user's rating of a document."""
+    
+    document = models.ForeignKey(Document, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.SmallIntegerField()  # 1-5 stars
+    created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         unique_together = ('document', 'user')
     
-    def __str__(self) -> str:
-        """
-        Return a string representation of the document permission.
-        
-        Returns:
-            str: A formatted string showing user, permission level, and document title.
-        """
-        return f"{self.user.username} - {self.permission_level} - {self.document.title}"
+    def __str__(self):
+        return f"{self.user.username} rating {self.rating} for {self.document.name}"
 
-class SharedLink(models.Model):
-    """Model representing a shared link for a document."""
+class Annotation(models.Model):
+    """Model representing an annotation on a document version."""
     
-    document: models.ForeignKey = models.ForeignKey(Document, on_delete=models.CASCADE)
-    token: models.CharField = models.CharField(max_length=100, unique=True)
-    created_by: models.ForeignKey = models.ForeignKey(User, on_delete=models.CASCADE)
-    created_at: models.DateTimeField = models.DateTimeField(auto_now_add=True)
-    expires_at: models.DateTimeField = models.DateTimeField(null=True, blank=True)
-    is_active: models.BooleanField = models.BooleanField(default=True)
+    document_version = models.ForeignKey(DocumentVersion, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    page_number = models.IntegerField(null=True, blank=True)
+    coords = models.CharField(max_length=255, blank=True, null=True)  # JSON or string representing coordinates
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
-    def __str__(self) -> str:
-        """
-        Return a string representation of the shared link.
+    def __str__(self):
+        return f"Annotation by {self.user.username} on {self.document_version.document.name}"
+
+class SharedItem(models.Model):
+    """Model representing a shared document or folder."""
+    
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, null=True, blank=True)
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, blank=True)
+    shared_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shared_items')
+    shared_with_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='received_shares')
+    shared_with_group = models.ForeignKey('auth.Group', on_delete=models.CASCADE, null=True, blank=True)  # Django's built-in Group model
+    PERMISSION_LEVELS = [
+        ('VIEW', 'VIEW'),
+        ('EDIT', 'EDIT'),
+        ('VIEW_EDIT', 'VIEW_EDIT'),
+    ]
+    permission_level = models.CharField(max_length=20, choices=PERMISSION_LEVELS)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
+    def clean(self):
+        # Ensure either document or folder is set, not both
+        if not (self.document or self.folder):
+            raise ValidationError("Either document or folder must be set.")
+        if self.document and self.folder:
+            raise ValidationError("Only one of document or folder can be set.")
         
-        Returns:
-            str: A formatted string indicating this is a shared link for a document.
-        """
-        return f"Shared link for {self.document.title}"
+        # Ensure either shared_with_user or shared_with_group is set, not both
+        if not (self.shared_with_user or self.shared_with_group):
+            raise ValidationError("Either shared_with_user or shared_with_group must be set.")
+        if self.shared_with_user and self.shared_with_group:
+            raise ValidationError("Only one of shared_with_user or shared_with_group can be set.")
+    
+    def __str__(self):
+        item = self.document or self.folder
+        recipient = self.shared_with_user or self.shared_with_group
+        return f"{item} shared by {self.shared_by} with {recipient}"
+
+class Notification(models.Model):
+    """Model representing a notification for a user."""
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.TextField()
+    link_to_item = models.TextField(blank=True, null=True)  # URL path to the relevant item
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.message[:50]}..."
+
+class AuditLog(models.Model):
+    """Model representing an audit log entry."""
+    
+    timestamp = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField(max_length=255)  # e.g., "DOCUMENT_UPLOADED", "USER_LOGIN_SUCCESS"
+    object_type = models.CharField(max_length=100)  # e.g., "Document", "Folder", "User"
+    object_id = models.BigIntegerField(null=True, blank=True)  # ID of the object affected
+    details = models.JSONField(null=True, blank=True)  # JSON field for additional context
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    is_sensitive = models.BooleanField(default=False)  # Flag for security-critical events
+    
+    def __str__(self):
+        user_str = self.user.username if self.user else "System"
+        return f"{user_str} {self.action} on {self.object_type} at {self.timestamp}"

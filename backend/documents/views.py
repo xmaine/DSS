@@ -2,8 +2,9 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import Document, Tag, Correspondent, DocumentType, DocumentPermission, SharedLink
-from .serializers import DocumentSerializer, TagSerializer, CorrespondentSerializer, DocumentTypeSerializer, DocumentPermissionSerializer, SharedLinkSerializer
+from .models import Document, Tag, Correspondent, DocumentType, SharedItem, DocumentRating, Annotation, Folder
+from users.models import CustomUser
+from .serializers import DocumentSerializer, TagSerializer, CorrespondentSerializer, DocumentTypeSerializer
 from .search import DocumentSearchService
 from .health_check import SystemHealthCheckService
 from .validation.models import DocumentCreate, DocumentUpdate, TagCreate, TagUpdate
@@ -82,16 +83,17 @@ class DocumentViewSet(viewsets.ModelViewSet):
         """Create a shared link for a document"""
         try:
             document = Document.objects.get(id=pk)
-            # Create a shared link
-            shared_link = SharedLink.objects.create(
+            # Create a shared item
+            shared_item = SharedItem.objects.create(
                 document=document,
-                token=str(uuid.uuid4()),
-                created_by=request.user if request.user.is_authenticated else None,
+                shared_by=request.user if request.user.is_authenticated else None,
+                shared_with_user=None,  # Would be set based on request data
+                permission_level='VIEW',
                 is_active=True
             )
             
-            serializer = SharedLinkSerializer(shared_link)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            # For now, we'll return a simple response
+            return Response({'message': 'Document shared successfully'}, status=status.HTTP_201_CREATED)
         except Document.DoesNotExist:
             return Response({'error': 'Document not found'}, status=status.HTTP_404_NOT_FOUND)
     
@@ -99,12 +101,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
     def dashboard(self, request):
         """Get dashboard data"""
         # Get recent documents
-        recent_documents = Document.objects.order_by('-uploaded_at')[:5]
+        recent_documents = Document.objects.order_by('-created_at')[:5]
         
         # Get document statistics
         total_documents = Document.objects.count()
-        processed_documents = Document.objects.filter(processed=True).count()
-        unprocessed_documents = Document.objects.filter(processed=False).count()
+        # processed_documents = Document.objects.filter(processed=True).count()
+        # unprocessed_documents = Document.objects.filter(processed=False).count()
         
         # Get classification statistics
         tags_count = Tag.objects.count()
@@ -119,13 +121,77 @@ class DocumentViewSet(viewsets.ModelViewSet):
             'recent_documents': DocumentSerializer(recent_documents, many=True).data,
             'statistics': {
                 'total_documents': total_documents,
-                'processed_documents': processed_documents,
-                'unprocessed_documents': unprocessed_documents,
+                # 'processed_documents': processed_documents,
+                # 'unprocessed_documents': unprocessed_documents,
                 'tags_count': tags_count,
                 'correspondents_count': correspondents_count,
                 'document_types_count': document_types_count
             },
             'health': health_stats
+        }
+        
+        return Response(data)
+
+    @action(detail=False, methods=['get'], url_path='admin-dashboard')
+    def admin_dashboard(self, request):
+        """Get System Administrator dashboard data with system health, activity feed, and statistics"""
+        # System Health Status
+        health_service = SystemHealthCheckService()
+        health_stats = health_service.get_system_statistics()
+        
+        # Recent Activity Feed
+        recent_activities = []
+        # Get recent document uploads
+        recent_docs = Document.objects.order_by('-created_at')[:5]
+        for doc in recent_docs:
+            recent_activities.append({
+                'timestamp': doc.created_at,
+                'user': doc.uploader.username if doc.uploader else 'Unknown',
+                'action': 'uploaded document',
+                'item': doc.name,
+                'type': 'document'
+            })
+        
+        # User Statistics
+        total_users = CustomUser.objects.count()
+        active_users = CustomUser.objects.filter(is_active=True).count()
+        users_by_role = {
+            'ADMIN': CustomUser.objects.filter(role='ADMIN').count(),
+            'SENIOR_DEPT_HEAD': CustomUser.objects.filter(role='SENIOR_DEPT_HEAD').count(),
+            'DEPT_HEAD': CustomUser.objects.filter(role='DEPT_HEAD').count(),
+            'EMPLOYEE': CustomUser.objects.filter(role='EMPLOYEE').count(),
+        }
+        
+        # Document Statistics
+        total_documents = Document.objects.count()
+        documents_by_type = {}
+        for doc_type in DocumentType.objects.all():
+            documents_by_type[doc_type.name] = Document.objects.filter(document_type=doc_type).count()
+        
+        # Storage consumed (simplified)
+        total_storage = sum([doc.current_version.file_size for doc in Document.objects.all() if doc.current_version]) if Document.objects.exists() else 0
+        
+        # Pending Workflows summary
+        pending_workflows = 0  # Placeholder for now
+        
+        data = {
+            'system_health': health_stats,
+            'recent_activity': recent_activities,
+            'user_statistics': {
+                'total_users': total_users,
+                'active_users': active_users,
+                'users_by_role': users_by_role
+            },
+            'document_statistics': {
+                'total_documents': total_documents,
+                'documents_by_type': documents_by_type,
+                'storage_consumed': total_storage
+            },
+            'pending_workflows': pending_workflows,
+            'quick_links': [
+                {'name': 'Manage Users', 'url': '/api/users/'},
+                {'name': 'View Logs', 'url': '/api/audit-logs/'}
+            ]
         }
         
         return Response(data)
@@ -169,12 +235,7 @@ class DocumentTypeViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentTypeSerializer
     permission_classes = [permissions.AllowAny]
 
-class DocumentPermissionViewSet(viewsets.ModelViewSet):
-    queryset = DocumentPermission.objects.all()
-    serializer_class = DocumentPermissionSerializer
-    permission_classes = [permissions.AllowAny]
-
-class SharedLinkViewSet(viewsets.ModelViewSet):
-    queryset = SharedLink.objects.all()
-    serializer_class = SharedLinkSerializer
+class FolderViewSet(viewsets.ModelViewSet):
+    queryset = Folder.objects.all()
+    serializer_class = DocumentSerializer  # You would create a FolderSerializer
     permission_classes = [permissions.AllowAny]
