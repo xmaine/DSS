@@ -70,7 +70,7 @@ if %errorlevel% neq 0 (
 echo.
 
 echo Checking for local changes...
-git status --porcelain >nul
+git status --porcelain >nul 2>&1
 if %errorlevel% neq 0 (
     echo Error: Failed to check repository status
     pause
