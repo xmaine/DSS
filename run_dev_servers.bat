@@ -138,7 +138,7 @@ if not exist "frontend\node_modules" (
 :: Start backend server
 echo Starting Django backend server...
 echo This may take a few seconds...
-start "Django Backend Server" /D "backend" cmd /c "python manage.py runserver 8000 ^& pause"
+start "Django Backend Server" /D "backend" cmd /k "python manage.py runserver 8000"
 
 :: Wait a few seconds for backend to start
 timeout /t 5 /nobreak >nul
@@ -159,7 +159,7 @@ if %errorlevel% equ 0 (
 :: Start frontend server
 echo Starting React frontend server...
 echo This may take a few seconds...
-start "React Frontend Server" /D "frontend" cmd /c "npm start ^& pause"
+start "React Frontend Server" /D "frontend" cmd /k "npm start"
 
 echo.
 echo ========================================

@@ -197,7 +197,7 @@ if !PORT_IN_USE! equ 1 (
 
 :: Start backend server
 echo Starting Django backend server on port %BACKEND_PORT%...
-start "Django Backend Server - Document Solutions" /D "%BACKEND_DIR%" cmd /c "title Django Backend Server ^& python manage.py runserver %BACKEND_PORT% ^& echo. ^& echo Press any key to close this window... ^& pause >nul"
+start "Django Backend Server - Document Solutions" /D "%BACKEND_DIR%" cmd /k "title Django Backend Server & python manage.py runserver %BACKEND_PORT%"
 
 :: Wait a few seconds for backend to start
 echo Waiting for backend server to start...
@@ -218,7 +218,7 @@ if !PORT_IN_USE! equ 1 (
 
 :: Start frontend server
 echo Starting React frontend server on port %FRONTEND_PORT%...
-start "React Frontend Server - Document Solutions" /D "%FRONTEND_DIR%" cmd /c "title React Frontend Server ^& npm start ^& echo. ^& echo Press any key to close this window... ^& pause >nul"
+start "React Frontend Server - Document Solutions" /D "%FRONTEND_DIR%" cmd /k "title React Frontend Server & npm start"
 
 echo.
 echo ========================================
