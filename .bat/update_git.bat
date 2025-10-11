@@ -29,10 +29,7 @@ REM Check if there are changes to commit
 git diff-index --quiet HEAD --
 if %errorlevel% neq 0 (
     REM Commit changes with a simple message
-    for /f "tokens=2 delims==" %%a in ('date /t') do set "currentdate=%%a"
-    for /f "tokens=1 delims==" %%a in ('time /t') do set "currenttime=%%a"
-    
-    git commit -m "Local backup - %currentdate% %currenttime%"
+    git commit -m "Local backup - %date% %time%"
     if %errorlevel% neq 0 (
         echo Error: Failed to commit changes
         pause
