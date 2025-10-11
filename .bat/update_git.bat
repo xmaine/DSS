@@ -29,7 +29,7 @@ REM Check if there are changes to commit
 git diff-index --quiet HEAD --
 if %errorlevel% neq 0 (
     REM Commit changes with a simple message
-    git commit -m "Local backup - %date% %time%"
+    git commit -m "Local backup"
     if %errorlevel% neq 0 (
         echo Warning: Failed to commit changes, but continuing with push
     ) else (
@@ -66,33 +66,6 @@ if %errorlevel% neq 0 (
     echo Error: Failed to fetch from remote repository
     pause
     exit /b 1
-)
-echo.
-
-echo Checking for local changes...
-git status --porcelain >nul 2>&1
-if ERRORLEVEL 1 (
-    echo Error: Failed to check repository status
-    pause
-    exit /b 1
-)
-
-REM Check if there are any local changes
-git diff-index --quiet HEAD --
-if ERRORLEVEL 1 (
-    echo Local changes detected:
-    git status --porcelain
-    echo.
-    echo WARNING: You have local changes that might be overwritten!
-    echo.
-    set /p choice=Do you want to continue with git pull? (y/N): 
-    if /i not "%choice%"=="y" (
-        echo Operation cancelled by user.
-        pause
-        exit /b 0
-    )
-) else (
-    echo No local changes detected.
 )
 echo.
 
