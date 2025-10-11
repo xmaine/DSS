@@ -7,6 +7,7 @@ echo ========================================
 echo.
 
 :: Check if we're in the correct directory
+echo Checking for backend files...
 if not exist "backend\manage.py" (
     echo ERROR: Cannot find backend directory. Please run this script from the project root directory.
     echo Current directory: %CD%
@@ -19,6 +20,7 @@ if not exist "backend\manage.py" (
     exit /b 1
 )
 
+echo Checking for frontend files...
 if not exist "frontend\package.json" (
     echo ERROR: Cannot find frontend directory. Please run this script from the project root directory.
     echo Current directory: %CD%
