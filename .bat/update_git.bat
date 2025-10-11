@@ -28,13 +28,11 @@ git add .
 REM Check if there are changes to commit
 git diff-index --quiet HEAD --
 if %errorlevel% neq 0 (
-    REM Commit changes with timestamp
-    for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
-    set "YY=%dt:~2,2%" & set "YYYY=%dt:~0,4%" & set "MM=%dt:~4,2%" & set "DD=%dt:~6,2%"
-    set "HH=%dt:~8,2%" & set "Min=%dt:~10,2%" & set "Sec=%dt:~12,2%"
-    set "datestamp=%YYYY%-%MM%-%DD% %HH%:%Min%:%Sec%"
+    REM Commit changes with a simple message
+    for /f "tokens=2 delims==" %%a in ('date /t') do set "currentdate=%%a"
+    for /f "tokens=1 delims==" %%a in ('time /t') do set "currenttime=%%a"
     
-    git commit -m "Local backup - %datestamp%"
+    git commit -m "Local backup - %currentdate% %currenttime%"
     if %errorlevel% neq 0 (
         echo Error: Failed to commit changes
         pause
