@@ -31,11 +31,10 @@ if %errorlevel% neq 0 (
     REM Commit changes with a simple message
     git commit -m "Local backup - %date% %time%"
     if %errorlevel% neq 0 (
-        echo Error: Failed to commit changes
-        pause
-        exit /b 1
+        echo Warning: Failed to commit changes, but continuing with push
+    ) else (
+        echo Local changes committed successfully.
     )
-    echo Local changes committed successfully.
 ) else (
     echo No local changes to commit.
 )
