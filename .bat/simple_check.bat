@@ -1,4 +1,7 @@
 @echo on
+:: Navigate to the project root directory (parent of .bat directory)
+cd /d "%~dp0.."
+
 echo Current directory: %CD%
 echo.
 echo Checking backend directory...

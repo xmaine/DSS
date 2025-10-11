@@ -1,6 +1,9 @@
 @echo off
 title Document Solutions Development Servers
 
+:: Navigate to the project root directory (parent of .bat directory)
+cd /d "%~dp0.."
+
 echo ========================================
 echo Document Solutions - Development Environment
 echo ========================================

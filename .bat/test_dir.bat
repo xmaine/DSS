@@ -1,4 +1,7 @@
 @echo off
+:: Navigate to the project root directory (parent of .bat directory)
+cd /d "%~dp0.."
+
 echo ========================================
 echo Document Solutions - Directory Diagnostic
 echo ========================================

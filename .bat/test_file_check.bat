@@ -1,4 +1,7 @@
 @echo off
+:: Navigate to the project root directory (parent of .bat directory)
+cd /d "%~dp0.."
+
 echo Testing file detection...
 echo Current directory: %CD%
 echo.

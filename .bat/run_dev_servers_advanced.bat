@@ -3,6 +3,9 @@ setlocal enabledelayedexpansion
 
 title Document Solutions Development Servers
 
+:: Navigate to the project root directory (parent of .bat directory)
+cd /d "%~dp0.."
+
 :: Configuration
 set BACKEND_PORT=8000
 set FRONTEND_PORT=3000
