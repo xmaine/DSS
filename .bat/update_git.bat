@@ -71,7 +71,7 @@ echo.
 
 echo Checking for local changes...
 git status --porcelain >nul 2>&1
-if %errorlevel% neq 0 (
+if ERRORLEVEL 1 (
     echo Error: Failed to check repository status
     pause
     exit /b 1
@@ -79,9 +79,7 @@ if %errorlevel% neq 0 (
 
 REM Check if there are any local changes
 git diff-index --quiet HEAD --
-if %errorlevel% equ 0 (
-    echo No local changes detected.
-) else (
+if ERRORLEVEL 1 (
     echo Local changes detected:
     git status --porcelain
     echo.
@@ -93,6 +91,8 @@ if %errorlevel% equ 0 (
         pause
         exit /b 0
     )
+) else (
+    echo No local changes detected.
 )
 echo.
 
