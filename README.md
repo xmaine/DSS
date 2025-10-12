@@ -70,7 +70,7 @@ For detailed information about the frontend components, see [frontend/README.md]
 
 The initial layout has been implemented with:
 
-- **Header**: System name "Document Solutions", expanded search bar, notification bell with count, user role selector, and profile icon
+- **Header**: System name "Document Solutions", centered search bar, notification bell with count, and profile icon
 - **Navigation Menu**: Consistent height matching the header, menu items with icons (Dashboard, Documents, Folders, Settings), and active state highlighting
 - **Sidebar**: Role-based navigation with different access levels for System Administrator, Senior Department Head, Department Head, and Employee roles
 - **Main Content Area**: Dashboard with document tables and statistics

@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './layout/Sidebar';
 import DashboardPage from './pages/DashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import DocumentsPage from './pages/DocumentsPage';
-import UserManagement from './admin/UserManagement';
+import UsersAndRoles from './admin/UsersAndRoles';
 import DocumentTypes from './admin/DocumentTypes';
-import Correspondents from './admin/Correspondents';
-import Tags from './admin/Tags';
+import TagsCorrespondents from './admin/TagsCorrespondents';
+import Permissions from './admin/Permissions';
+import AuditLogs from './admin/AuditLogs';
+import SystemConfiguration from './admin/SystemConfiguration';
 import Workflows from './admin/Workflows';
 import SettingsPage from './pages/SettingsPage'; // Import SettingsPage
 import { 
@@ -22,17 +24,25 @@ const MainApp = ({ onLogout, user }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
-  const [userRole, setUserRole] = useState('Employee'); // Default to Employee role
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); // State for user dropdown menu
 
-  const handleSectionChange = (section) => {
-    setActiveSection(section);
+  // Map backend role values to frontend role names
+  const getFrontendRoleName = (backendRole) => {
+    const roleMapping = {
+      'ADMIN': 'System Administrator',
+      'SENIOR_DEPT_HEAD': 'Senior Department Head',
+      'DEPT_HEAD': 'Department Head',
+      'EMPLOYEE': 'Employee'
+    };
+    return roleMapping[backendRole] || 'Employee'; // Default to Employee if not found
   };
 
-  const handleRoleChange = (role) => {
-    setUserRole(role);
-    // Reset to dashboard when changing roles
-    setActiveSection('dashboard');
+  // Get the user's role name for the frontend
+  const userRole = user && user.role ? getFrontendRoleName(user.role) : 'Employee';
+
+  const handleSectionChange = (section) => {
+    console.log('Section change requested:', section);
+    setActiveSection(section);
   };
 
   // Handle user logout
@@ -74,6 +84,8 @@ const MainApp = ({ onLogout, user }) => {
     // Check if user is System Administrator
     const isSystemAdmin = userRole === 'System Administrator';
     
+    console.log('Rendering page for section:', activeSection, 'User role:', userRole, 'Is admin:', isSystemAdmin);
+    
     switch (activeSection) {
       case 'dashboard':
         return isSystemAdmin ? <AdminDashboardPage /> : <DashboardPage />;
@@ -93,7 +105,7 @@ const MainApp = ({ onLogout, user }) => {
           </div>
         );
       case 'user-management':
-        return <UserManagement />;
+        return <UsersAndRoles />;
       case 'department-users':
         return (
           <div className="bg-white p-6 rounded-lg border border-gray-200">
@@ -106,21 +118,10 @@ const MainApp = ({ onLogout, user }) => {
             <p className="text-gray-700">Role management page will be implemented here.</p>
           </div>
         );
-      case 'permission-settings':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Permission settings page will be implemented here.</p>
-          </div>
-        );
       case 'document-types':
         return <DocumentTypes />;
       case 'tags-correspondents':
-        return (
-          <div className="space-y-6">
-            <Tags />
-            <Correspondents />
-          </div>
-        );
+        return <TagsCorrespondents />;
       case 'version-history':
         return (
           <div className="bg-white p-6 rounded-lg border border-gray-200">
@@ -185,14 +186,15 @@ const MainApp = ({ onLogout, user }) => {
             <p className="text-gray-700">Search page will be implemented here.</p>
           </div>
         );
+      case 'permissions':
+      case 'permission-settings':
+        return <Permissions />;
+      case 'audit-logs':
+        return <AuditLogs />;
+      case 'system-config':
+        return <SystemConfiguration />;
       case 'workflows':
         return <Workflows />;
-      case 'audit-logs':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Audit logs page will be implemented here.</p>
-          </div>
-        );
       case 'team-management':
         return (
           <div className="bg-white p-6 rounded-lg border border-gray-200">
@@ -200,17 +202,10 @@ const MainApp = ({ onLogout, user }) => {
           </div>
         );
       default:
+        console.log('No specific page for section, showing default dashboard');
         return isSystemAdmin ? <AdminDashboardPage /> : <DashboardPage />;
     }
   };
-
-  // Role options for the selector
-  const roleOptions = [
-    'System Administrator',
-    'Senior Department Head',
-    'Department Head',
-    'Employee'
-  ];
 
   return (
     // YouTube-style light theme layout
@@ -232,18 +227,11 @@ const MainApp = ({ onLogout, user }) => {
             <span className="ml-2 text-lg font-bold text-black">Document Solutions</span>
           </div>
           
-          {/* Menu labels with 50px distance */}
-          <div className="hidden md:flex items-center ml-12 space-x-10">
-            <button className="text-sm font-medium text-black hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100">FILE</button>
-            <button className="text-sm font-medium text-black hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100">EDIT</button>
-            <button className="text-sm font-medium text-black hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100">VIEW</button>
-            <button className="text-sm font-medium text-black hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100">TOOLS</button>
-            <button className="text-sm font-medium text-black hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100">WINDOW</button>
-            <button className="text-sm font-medium text-black hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100">HELP</button>
-          </div>
+          {/* Removed menu labels (FILE, EDIT, VIEW, TOOLS, WINDOW, HELP) to give more space for user greetings */}
         </div>
         
-        <div className="flex items-center space-x-4">
+        {/* Center the search bar */}
+        <div className="flex items-center justify-center absolute left-1/2 transform -translate-x-1/2">
           {/* 600px search textbox */}
           <div className="relative" style={{ width: '600px' }}>
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -257,7 +245,9 @@ const MainApp = ({ onLogout, user }) => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          
+        </div>
+        
+        <div className="flex items-center space-x-4">
           {/* Notification bell */}
           <div className="relative">
             <button 
@@ -269,24 +259,13 @@ const MainApp = ({ onLogout, user }) => {
             <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">3</span>
           </div>
           
-          {/* Role selector */}
-          <select 
-            value={userRole} 
-            onChange={(e) => handleRoleChange(e.target.value)}
-            className="hidden lg:block text-sm bg-gray-100 border border-gray-300 rounded px-3 py-2 text-black focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          >
-            {roleOptions.map(role => (
-              <option key={role} value={role} className="bg-white">{role}</option>
-            ))}
-          </select>
-          
           {/* User dropdown menu */}
           <div className="relative">
             <button 
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               className="flex items-center space-x-2 focus:outline-none"
             >
-              <span className="hidden md:inline text-sm font-medium text-black">
+              <span className="text-sm font-medium text-black whitespace-nowrap">
                 Hello, {user ? user.username : 'User'}
               </span>
               <UserCircleIcon className="w-8 h-8 text-black" />

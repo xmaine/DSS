@@ -11,6 +11,47 @@ from processing.models import WorkflowTemplate, WorkflowStep
 from documents.serializers import DocumentSerializer, DocumentTypeSerializer, CorrespondentSerializer, TagSerializer, FolderSerializer, AuditLogSerializer
 from processing.serializers import WorkflowTemplateSerializer
 
+class AuthViewSet(viewsets.ViewSet):
+    """
+    ViewSet for authentication endpoints
+    """
+    permission_classes = [permissions.AllowAny]
+    
+    @action(detail=False, methods=['post'], url_path='login')
+    def login_user(self, request):
+        """Authenticate and login a user"""
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        if not username or not password:
+            return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            serializer = CustomUserSerializer(user)
+            return Response({
+                'success': True,
+                'user': serializer.data
+            })
+        else:
+            return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    @action(detail=False, methods=['post'], url_path='logout')
+    def logout_user(self, request):
+        """Logout the current user"""
+        logout(request)
+        return Response({'message': 'Successfully logged out'})
+    
+    @action(detail=False, methods=['get'], url_path='me')
+    def get_current_user(self, request):
+        """Get the current authenticated user"""
+        if request.user.is_authenticated:
+            serializer = CustomUserSerializer(request.user)
+            return Response({'data': serializer.data})
+        else:
+            return Response({'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+
 class AdminDashboardViewSet(viewsets.ViewSet):
     """
     ViewSet for System Administrator Dashboard and management functions
@@ -247,42 +288,25 @@ class UserManagementViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class DocumentManagementViewSet(viewsets.ReadOnlyModelViewSet):
+class DocumentManagementViewSet(viewsets.ViewSet):
     """
-    ViewSet for managing documents
+    ViewSet for managing documents and folders
     """
-    queryset = Document.objects.all()
-    serializer_class = DocumentSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
-    def get_queryset(self):
-        # Only admins can access this
-        if self.request.user.role != 'ADMIN':
-            return Document.objects.none()
-        return super().get_queryset()
     
     @action(detail=False, methods=['get'], url_path='folder-tree')
     def folder_tree(self, request):
-        """Get hierarchical folder structure"""
+        """Get the folder tree for System Administrator"""
         if request.user.role != 'ADMIN':
             return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
             
-        # Get root folders (those without parent)
-        root_folders = Folder.objects.filter(parent_folder__isnull=True)
-        
-        def serialize_folder(folder):
-            children = Folder.objects.filter(parent_folder=folder)
-            return {
-                'id': folder.id,
-                'name': folder.name,
-                'path': folder.path,
-                'created_at': folder.created_at,
-                'is_active': folder.is_active,
-                'children': [serialize_folder(child) for child in children]
-            }
-        
-        folder_tree = [serialize_folder(folder) for folder in root_folders]
-        return Response(folder_tree)
+        try:
+            # Get all folders
+            folders = Folder.objects.all()
+            serializer = FolderSerializer(folders, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': f'Failed to fetch folder tree: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=False, methods=['get'], url_path='search')
     def search_documents(self, request):
@@ -599,60 +623,6 @@ class SystemConfigurationViewSet(viewsets.ViewSet):
             'external_services': []
         })
 
-class AuthViewSet(viewsets.ViewSet):
-    """
-    ViewSet for handling authentication
-    """
-    permission_classes = [permissions.AllowAny]
-    
-    @action(detail=False, methods=['post'], url_path='login')
-    def login_user(self, request):
-        """Login endpoint"""
-        username = request.data.get('username')
-        password = request.data.get('password')
-        
-        print(f"Login attempt - Username: {username}, Password provided: {bool(password)}")
-        
-        if username and password:
-            user = authenticate(username=username, password=password)
-            print(f"Authentication result - User object: {user}")
-            
-            if user:
-                login(request, user)
-                print(f"User logged in successfully - User ID: {user.id}")
-                return Response({
-                    'success': True,
-                    'user': CustomUserSerializer(user).data
-                })
-            else:
-                print("Authentication failed - Invalid credentials")
-                return Response({
-                    'success': False,
-                    'error': 'Invalid credentials'
-                }, status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            print("Authentication failed - Missing username or password")
-            return Response({
-                'success': False,
-                'error': 'Username and password required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-    
-    @action(detail=False, methods=['post'], url_path='logout')
-    def logout_user(self, request):
-        """Logout endpoint"""
-        logout(request)
-        return Response({'success': True})
-    
-    @action(detail=False, methods=['get'], url_path='me')
-    def get_current_user(self, request):
-        """Get current user info"""
-        if request.user.is_authenticated:
-            return Response(CustomUserSerializer(request.user).data)
-        else:
-            return Response({
-                'error': 'Not authenticated'
-            }, status=status.HTTP_401_UNAUTHORIZED)
-
 class AuditLogViewSet(viewsets.ViewSet):
     """
     ViewSet for managing audit logs
@@ -780,6 +750,33 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             department = serializer.save()
+            
+            # Create a folder for the department
+            try:
+                from documents.models import Folder
+                folder_name = f"{department.name} Documents"
+                folder = Folder.objects.create(
+                    name=folder_name,
+                    owner=user,
+                    path=f"/{folder_name}"
+                )
+                # Log the folder creation in audit logs
+                from documents.models import AuditLog
+                AuditLog.objects.create(
+                    user=user,
+                    action="FOLDER_CREATED_FOR_DEPARTMENT",
+                    object_type="Folder",
+                    object_id=folder.id,
+                    details={
+                        "department_id": department.id,
+                        "department_name": department.name,
+                        "folder_name": folder_name
+                    }
+                )
+            except Exception as e:
+                # If folder creation fails, log the error but don't fail the department creation
+                print(f"Failed to create folder for department {department.name}: {str(e)}")
+            
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -833,3 +830,24 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         # Delete department
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class DocumentManagementViewSet(viewsets.ViewSet):
+    """
+    ViewSet for managing documents and folders
+    """
+    queryset = Document.objects.none()  # Required for router basename
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @action(detail=False, methods=['get'], url_path='folder-tree')
+    def folder_tree(self, request):
+        """Get the folder tree for System Administrator"""
+        if request.user.role != 'ADMIN':
+            return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+            
+        try:
+            # Get all folders
+            folders = Folder.objects.all()
+            serializer = FolderSerializer(folders, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': f'Failed to fetch folder tree: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

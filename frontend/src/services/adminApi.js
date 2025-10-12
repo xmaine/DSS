@@ -74,6 +74,13 @@ export const createAdminCorrespondent = (correspondentData) => adminApi.post('/t
 export const updateAdminCorrespondent = (id, correspondentData) => adminApi.put(`/types/correspondents/${id}/update/`, correspondentData);
 export const deleteAdminCorrespondent = (id) => adminApi.delete(`/types/correspondents/${id}/delete/`);
 
+// Department Management (Admin)
+export const getAdminDepartments = () => adminApi.get('/departments/');
+export const getAdminDepartment = (id) => adminApi.get(`/departments/${id}/`);
+export const createAdminDepartment = (departmentData) => adminApi.post('/departments/', departmentData);
+export const updateAdminDepartment = (id, departmentData) => adminApi.put(`/departments/${id}/`, departmentData);
+export const deleteAdminDepartment = (id) => adminApi.delete(`/departments/${id}/`);
+
 // Permissions Management (Admin)
 export const getGlobalRolePermissions = () => adminApi.get('/permissions/global-role-permissions/');
 export const getObjectLevelPermissions = () => adminApi.get('/permissions/object-level-permissions/');

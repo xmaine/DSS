@@ -259,7 +259,7 @@ Based on SBCONTENT.md and SidebarOpt.txt, the sidebar implementation status for 
 #### Header Implementation
 *   YouTube-style header with burger button: **DONE**
 *   System icon and name: **DONE**
-*   Menu labels (FILE, EDIT, VIEW, TOOLS, WINDOW, HELP): **DONE**
+*   Menu labels (FILE, EDIT, VIEW, TOOLS, WINDOW, HELP): **REMOVED** - Menu items removed to give more space for user greetings
 *   600px search textbox: **DONE**
 *   Notification bell with count: **DONE**
 *   Role selector: **DONE**

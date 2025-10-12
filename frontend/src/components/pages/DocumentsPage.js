@@ -1,20 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import DocumentTable from '../ui/DocumentTable';
-import { getDocuments, searchDocuments } from '../../services/api';
-import { getAdminFolderTree } from '../../services/adminApi';
+import { getDocuments, searchDocuments, getTags } from '../../services/api';
+import { getAdminFolderTree, getAdminCorrespondents } from '../../services/adminApi';
+import { FolderIcon } from '../ui/Icons';
 
 const DocumentsPage = ({ isAdminView = false }) => {
   const [documents, setDocuments] = useState([]);
   const [folders, setFolders] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [correspondents, setCorrespondents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
+  const [selectedCorrespondent, setSelectedCorrespondent] = useState('');
 
   // In a real implementation, this would fetch from your Django API
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        
+        // Fetch tags and correspondents for filters
+        const [tagsResponse, correspondentsResponse] = await Promise.all([
+          getTags(),
+          isAdminView ? getAdminCorrespondents() : Promise.resolve({ data: [] })
+        ]);
+        
+        setTags(tagsResponse.data);
+        if (isAdminView) {
+          setCorrespondents(correspondentsResponse.data);
+        }
         
         if (isAdminView) {
           // For System Administrator, fetch all documents and folder tree
@@ -58,6 +74,18 @@ const DocumentsPage = ({ isAdminView = false }) => {
       setError('Failed to search documents');
       setLoading(false);
     }
+  };
+
+  const handleTagFilterChange = (e) => {
+    setSelectedTag(e.target.value);
+    // In a real implementation, this would filter the documents
+    console.log('Filtering by tag:', e.target.value);
+  };
+
+  const handleCorrespondentFilterChange = (e) => {
+    setSelectedCorrespondent(e.target.value);
+    // In a real implementation, this would filter the documents
+    console.log('Filtering by correspondent:', e.target.value);
   };
 
   if (loading) {
@@ -111,36 +139,53 @@ const DocumentsPage = ({ isAdminView = false }) => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Tag</label>
-            <select className="block w-full border border-gray-300 rounded-md shadow-sm p-2">
-              <option>All Tags</option>
-              <option>Finance</option>
-              <option>Project</option>
-              <option>HR</option>
+            <select 
+              className="block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              value={selectedTag}
+              onChange={handleTagFilterChange}
+            >
+              <option value="">All Tags</option>
+              {tags.map(tag => (
+                <option key={tag.id} value={tag.name}>{tag.name}</option>
+              ))}
             </select>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Correspondent</label>
-            <select className="block w-full border border-gray-300 rounded-md shadow-sm p-2">
-              <option>All Correspondents</option>
-              <option>Finance Department</option>
-              <option>Project Management</option>
-              <option>Human Resources</option>
+            <select 
+              className="block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              value={selectedCorrespondent}
+              onChange={handleCorrespondentFilterChange}
+              disabled={!isAdminView}
+            >
+              <option value="">All Correspondents</option>
+              {correspondents.map(correspondent => (
+                <option key={correspondent.id} value={correspondent.name}>{correspondent.name}</option>
+              ))}
             </select>
+            {!isAdminView && (
+              <p className="text-xs text-gray-500 mt-1">Correspondent filtering available for Admin only</p>
+            )}
           </div>
         </div>
         
         {isAdminView && folders.length > 0 && (
-          <div className="mb-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Folder Tree</h3>
-            <div className="border border-gray-200 rounded p-2">
-              <ul className="text-sm">
-                {folders.map((folder, index) => (
-                  <li key={index} className="py-1">
-                    <span className="ml-2">📁 {folder.name || 'Root'}</span>
-                  </li>
-                ))}
-              </ul>
+          <div className="mb-6">
+            <h3 className="text-lg font-medium text-gray-800 mb-3">Department Folders</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {folders.map((folder) => (
+                <div 
+                  key={folder.id} 
+                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center">
+                    <FolderIcon className="w-5 h-5 text-blue-500 mr-2" />
+                    <span className="font-medium text-gray-800">{folder.name || 'Unnamed Folder'}</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">Click to view documents in this folder</p>
+                </div>
+              ))}
             </div>
           </div>
         )}

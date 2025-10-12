@@ -19,6 +19,24 @@ echo Advanced Server Startup Script
 echo ========================================
 echo.
 
+:: Kill any existing processes on ports 8000 and 3000 to ensure only one instance runs
+echo [PORT MANAGEMENT] Checking for existing processes on ports %BACKEND_PORT% and %FRONTEND_PORT%...
+echo.
+
+:: Kill processes on backend port
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :%BACKEND_PORT% ^| findstr LISTENING') do (
+    echo [PORT MANAGEMENT] Killing existing process on port %BACKEND_PORT% (PID: %%a)
+    taskkill /f /pid %%a >nul 2>&1
+)
+
+:: Kill processes on frontend port
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :%FRONTEND_PORT% ^| findstr LISTENING') do (
+    echo [PORT MANAGEMENT] Killing existing process on port %FRONTEND_PORT% (PID: %%a)
+    taskkill /f /pid %%a >nul 2>&1
+)
+
+timeout /t 2 /nobreak >nul
+
 :: Function to check if a port is in use
 :check_port
 set PORT=%~1
@@ -209,9 +227,9 @@ timeout /t 8 /nobreak >nul
 :: Check if backend server started successfully
 call :check_port %BACKEND_PORT%
 if !PORT_IN_USE! equ 1 (
-    echo [SUCCESS] Backend server started successfully on http://127.0.0.1:%BACKEND_PORT%
+    echo [BACKEND SERVER SUCCESS] Backend server started successfully on http://127.0.0.1:%BACKEND_PORT%
 ) else (
-    echo [WARNING] Backend server may not have started correctly.
+    echo [BACKEND SERVER WARNING] Backend server may not have started correctly.
     echo Troubleshooting:
     echo 1. Check the backend server console for error messages
     echo 2. Verify that Django is properly installed
@@ -219,25 +237,75 @@ if !PORT_IN_USE! equ 1 (
     echo.
 )
 
-:: Start frontend server
+:: Start frontend server with custom environment to open browser
 echo Starting React frontend server on port %FRONTEND_PORT%...
-start "React Frontend Server - Document Solutions" /D "%FRONTEND_DIR%" cmd /k "title React Frontend Server & npm start"
+echo This may take a few seconds...
+
+:: Set environment variable to automatically open browser
+set BROWSER=none
+start "React Frontend Server - Document Solutions" /D "%FRONTEND_DIR%" cmd /k "title React Frontend Server & set BROWSER=chrome && npm start"
+
+:: Wait for frontend server to start
+echo [FRONTEND SERVER] Waiting for frontend server to initialize...
+timeout /t 15 /nobreak >nul
+
+:: Check if frontend server started successfully
+call :check_port %FRONTEND_PORT%
+if !PORT_IN_USE! equ 1 (
+    echo [FRONTEND SERVER SUCCESS] Frontend server started successfully on http://127.0.0.1:%FRONTEND_PORT%/
+) else (
+    echo [FRONTEND SERVER WARNING] Frontend server may not have started correctly.
+    echo Troubleshooting:
+    echo 1. Check if port %FRONTEND_PORT% is already in use
+    echo 2. Verify that Node.js dependencies are installed
+    echo 3. Check the frontend server console for error messages
+    echo.
+)
+
+:: Open Chrome browser to the frontend URL
+echo [BROWSER] Opening Chrome browser to http://127.0.0.1:%FRONTEND_PORT%/
+timeout /t 3 /nobreak >nul
+
+:: Try multiple methods to open Chrome with full path
+if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
+    echo [BROWSER] Using Chrome from Program Files
+    "C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window "http://127.0.0.1:%FRONTEND_PORT%/"
+) else if exist "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" (
+    echo [BROWSER] Using Chrome from Program Files (x86)
+    "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --new-window "http://127.0.0.1:%FRONTEND_PORT%/"
+) else (
+    :: Fallback to just chrome.exe if in PATH
+    echo [BROWSER] Using Chrome from PATH
+    start chrome.exe "http://127.0.0.1:%FRONTEND_PORT%/"
+)
 
 echo.
 echo ========================================
 echo Development Servers Status
 echo ========================================
 echo Backend Server:   http://127.0.0.1:%BACKEND_PORT%
-echo Frontend Server:  http://localhost:%FRONTEND_PORT%
+echo Frontend Server:  http://127.0.0.1:%FRONTEND_PORT%/
 echo.
-echo Notes:
-echo - Backend server console will show Django startup messages
-echo - Frontend server console will show React compilation status
-echo - Close individual server console windows to stop each server
-echo - This window can be closed without affecting the servers
+echo IMPORTANT INSTRUCTIONS:
+echo ======================
+echo 1. TWO NEW COMMAND WINDOWS HAVE BEEN OPENED:
+echo    - Django Backend Server (port %BACKEND_PORT%)
+echo    - React Frontend Server (port %FRONTEND_PORT%)
+echo.
+echo 2. THESE WINDOWS MUST REMAIN OPEN FOR THE SERVERS TO RUN
+echo.
+echo 3. TO STOP THE SERVERS:
+echo    - Close the Django Backend Server window
+echo    - Close the React Frontend Server window
+echo.
+echo 4. TO ACCESS YOUR APPLICATION:
+echo    - Backend API: http://127.0.0.1:%BACKEND_PORT%
+echo    - Frontend App: http://127.0.0.1:%FRONTEND_PORT%/
+echo.
+echo 5. THIS WINDOW CAN BE CLOSED SAFELY
+echo    (Press any key to close this window only)
 echo.
 echo Servers are now running!
 echo.
-echo Press any key to close this window...
 pause >nul
 exit /b 0

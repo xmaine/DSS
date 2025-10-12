@@ -9,6 +9,41 @@ echo Document Solutions - Development Environment
 echo ========================================
 echo.
 
+:: Kill any existing processes on ports 8000 and 3000 to ensure only one instance runs
+echo [PORT MANAGEMENT] Checking for existing processes on ports 8000 and 3000...
+echo.
+
+:: Kill processes on port 8000 (backend)
+echo [PORT MANAGEMENT] Checking for processes on port 8000...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8000 ^| findstr LISTENING 2^>nul') do (
+    echo [PORT MANAGEMENT] Killing existing process on port 8000 (PID: %%a)
+    taskkill /f /pid %%a >nul 2>&1
+    timeout /t 2 /nobreak >nul
+)
+
+:: Kill processes on port 3000 (frontend)
+echo [PORT MANAGEMENT] Checking for processes on port 3000...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :3000 ^| findstr LISTENING 2^>nul') do (
+    echo [PORT MANAGEMENT] Killing existing process on port 3000 (PID: %%a)
+    taskkill /f /pid %%a >nul 2>&1
+    timeout /t 2 /nobreak >nul
+)
+
+:: Additional cleanup - kill any python or node processes that might be running servers
+echo [PROCESS MANAGEMENT] Checking for existing Python/Django processes...
+for /f "tokens=2" %%a in ('tasklist ^| findstr python.exe 2^>nul') do (
+    echo [PROCESS MANAGEMENT] Killing Python process (PID: %%a)
+    taskkill /f /pid %%a >nul 2>&1
+)
+
+echo [PROCESS MANAGEMENT] Checking for existing Node.js processes...
+for /f "tokens=2" %%a in ('tasklist ^| findstr node.exe 2^>nul') do (
+    echo [PROCESS MANAGEMENT] Killing Node.js process (PID: %%a)
+    taskkill /f /pid %%a >nul 2>&1
+)
+
+timeout /t 3 /nobreak >nul
+
 :: Enhanced debugging information
 echo [DEBUG] Script started at: %date% %time%
 echo [DEBUG] Current working directory: %CD%
@@ -221,7 +256,7 @@ if not exist "frontend\node_modules" (
 :: Start backend server
 echo Starting Django backend server...
 echo This may take a few seconds...
-start "Django Backend Server" /D "backend" cmd /k "python manage.py runserver 8000"
+start "Django Backend Server" /D "backend" cmd /k "title Django Backend Server & python manage.py runserver 8000"
 
 :: Wait a few seconds for backend to start
 timeout /t 5 /nobreak >nul
@@ -229,9 +264,9 @@ timeout /t 5 /nobreak >nul
 :: Check if backend server started successfully
 netstat -an | findstr :8000 >nul
 if %errorlevel% equ 0 (
-    echo Backend server started successfully on http://127.0.0.1:8000
+    echo [BACKEND SERVER SUCCESS] Backend server started successfully on http://127.0.0.1:8000
 ) else (
-    echo WARNING: Backend server may not have started correctly.
+    echo [BACKEND SERVER WARNING] Backend server may not have started correctly.
     echo Troubleshooting:
     echo 1. Check if port 8000 is already in use
     echo 2. Verify that Django is properly installed
@@ -239,22 +274,72 @@ if %errorlevel% equ 0 (
     echo.
 )
 
-:: Start frontend server
+:: Start frontend server with custom environment to open browser
 echo Starting React frontend server...
 echo This may take a few seconds...
-start "React Frontend Server" /D "frontend" cmd /k "npm start"
+
+:: Set environment variable to automatically open browser
+set BROWSER=none
+start "React Frontend Server" /D "frontend" cmd /k "title React Frontend Server & set BROWSER=chrome && npm start"
+
+:: Wait for frontend server to start
+echo [FRONTEND SERVER] Waiting for frontend server to initialize...
+timeout /t 15 /nobreak >nul
+
+:: Check if frontend server started successfully
+netstat -an | findstr :3000 >nul
+if %errorlevel% equ 0 (
+    echo [FRONTEND SERVER SUCCESS] Frontend server started successfully on http://127.0.0.1:3000/
+) else (
+    echo [FRONTEND SERVER WARNING] Frontend server may not have started correctly.
+    echo Troubleshooting:
+    echo 1. Check if port 3000 is already in use
+    echo 2. Verify that Node.js dependencies are installed
+    echo 3. Check the frontend server console for error messages
+    echo.
+)
+
+:: Open Chrome browser to the frontend URL
+echo [BROWSER] Opening Chrome browser to http://127.0.0.1:3000/
+timeout /t 3 /nobreak >nul
+
+:: Try multiple methods to open Chrome with full path
+if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
+    echo [BROWSER] Using Chrome from Program Files
+    "C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window "http://127.0.0.1:3000/"
+) else if exist "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" (
+    echo [BROWSER] Using Chrome from Program Files (x86)
+    "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --new-window "http://127.0.0.1:3000/"
+) else (
+    :: Fallback to just chrome.exe if in PATH
+    echo [BROWSER] Using Chrome from PATH
+    start chrome.exe "http://127.0.0.1:3000/"
+)
 
 echo.
 echo ========================================
-echo Servers are starting up...
+echo Servers Status
 echo ========================================
-echo Backend:  http://127.0.0.1:8000
-echo Frontend: http://localhost:3000
+echo Backend Server:   http://127.0.0.1:8000
+echo Frontend Server:  http://127.0.0.1:3000
 echo.
-echo Notes:
-echo - Backend server console will show Django startup messages
-echo - Frontend server console will show React compilation status
-echo - Close the individual server console windows to stop each server
-echo - Press any key to close this window (servers will continue running)
+echo IMPORTANT INSTRUCTIONS:
+echo ======================
+echo 1. TWO NEW COMMAND WINDOWS HAVE BEEN OPENED:
+echo    - Django Backend Server (port 8000)
+echo    - React Frontend Server (port 3000)
+echo.
+echo 2. THESE WINDOWS MUST REMAIN OPEN FOR THE SERVERS TO RUN
+echo.
+echo 3. TO STOP THE SERVERS:
+echo    - Close the Django Backend Server window
+echo    - Close the React Frontend Server window
+echo.
+echo 4. TO ACCESS YOUR APPLICATION:
+echo    - Backend API: http://127.0.0.1:8000
+echo    - Frontend App: http://127.0.0.1:3000
+echo.
+echo 5. THIS WINDOW CAN BE CLOSED SAFELY
+echo    (Press any key to close this window only)
 echo.
 pause

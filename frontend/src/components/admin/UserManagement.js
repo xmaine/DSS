@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, searchAdminUsers } from '../../services/adminApi';
+import { getAdminDepartments } from '../../services/adminApi';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -21,6 +23,7 @@ const UserManagement = () => {
 
   useEffect(() => {
     fetchUsers();
+    fetchDepartments();
   }, []);
 
   const fetchUsers = async () => {
@@ -34,6 +37,16 @@ const UserManagement = () => {
       console.error('Error fetching users:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await getAdminDepartments();
+      setDepartments(response.data);
+    } catch (err) {
+      console.error('Error fetching departments:', err);
+      // If departments can't be fetched, we'll use an empty array
     }
   };
 
@@ -235,13 +248,19 @@ const UserManagement = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Department
               </label>
-              <input
-                type="text"
+              <select
                 name="department"
                 value={formData.department}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              >
+                <option value="">Select Department</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.name}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="flex items-center">

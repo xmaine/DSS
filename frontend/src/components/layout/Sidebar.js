@@ -119,7 +119,7 @@ const sidebarConfig = {
         name: 'Navigation',
         items: [
           { id: 'my-documents', label: 'Files', icon: 'document' },
-          { id: 'user-management', label: 'Users', icon: 'user-group' },
+          { id: 'user-management', label: 'Users & Roles', icon: 'user-group' },
           { id: 'document-types', label: 'Types', icon: 'document' },
           { id: 'tags-correspondents', label: 'Tags & Correspondents', icon: 'tag' },
           { id: 'permission-settings', label: 'Permission', icon: 'settings' },

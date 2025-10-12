@@ -6,11 +6,43 @@ echo Document Solutions - Development Environment
 echo ========================================
 echo.
 
-:: Check if we're in the correct directory
-echo Checking for backend files...
-if not exist "backend\manage.py" (
-    echo ERROR: Cannot find backend directory. Please run this script from the project root directory.
-    echo Current directory: %CD%
+:: Enhanced debugging information
+echo [DEBUG] Script started at: %date% %time%
+echo [DEBUG] Current working directory: %CD%
+echo [DEBUG] Script location: %~dp0
+echo [DEBUG] Full script path: %~f0
+echo.
+
+:: Check if we're in the correct directory with more detailed output
+echo [BACKEND CHECK] Checking for backend files...
+echo [DEBUG] Checking if backend directory exists...
+if exist "backend" (
+    echo [DEBUG] Backend directory exists
+    echo [DEBUG] Backend directory contents:
+    dir backend /b
+    echo [DEBUG] Checking for backend\manage.py...
+    if exist "backend\manage.py" (
+        echo [BACKEND SUCCESS] Found backend\manage.py
+    ) else (
+        echo [BACKEND ERROR] Cannot find backend\manage.py
+        echo [BACKEND ERROR DETAILS] Backend directory exists but manage.py is missing
+        echo [BACKEND ERROR DETAILS] Current directory: %CD%
+        echo [BACKEND ERROR DETAILS] Backend directory contents:
+        dir backend /b
+        echo.
+        echo Troubleshooting:
+        echo 1. Make sure you're in the project root directory (D:\PYTHON\Projects\Django\DSS)
+        echo 2. Check that the backend directory exists with manage.py file
+        echo 3. Verify file permissions on the backend directory
+        echo.
+        pause
+        exit /b 1
+    )
+) else (
+    echo [BACKEND ERROR] Cannot find backend directory
+    echo [BACKEND ERROR DETAILS] Current directory: %CD%
+    echo [BACKEND ERROR DETAILS] Directory contents:
+    dir /b
     echo.
     echo Troubleshooting:
     echo 1. Make sure you're in the project root directory (D:\PYTHON\Projects\Django\DSS)
@@ -20,10 +52,35 @@ if not exist "backend\manage.py" (
     exit /b 1
 )
 
-echo Checking for frontend files...
-if not exist "frontend\package.json" (
-    echo ERROR: Cannot find frontend directory. Please run this script from the project root directory.
-    echo Current directory: %CD%
+echo [FRONTEND CHECK] Checking for frontend files...
+echo [DEBUG] Checking if frontend directory exists...
+if exist "frontend" (
+    echo [DEBUG] Frontend directory exists
+    echo [DEBUG] Frontend directory contents:
+    dir frontend /b
+    echo [DEBUG] Checking for frontend\package.json...
+    if exist "frontend\package.json" (
+        echo [FRONTEND SUCCESS] Found frontend\package.json
+    ) else (
+        echo [FRONTEND ERROR] Cannot find frontend\package.json
+        echo [FRONTEND ERROR DETAILS] Frontend directory exists but package.json is missing
+        echo [FRONTEND ERROR DETAILS] Current directory: %CD%
+        echo [FRONTEND ERROR DETAILS] Frontend directory contents:
+        dir frontend /b
+        echo.
+        echo Troubleshooting:
+        echo 1. Make sure you're in the project root directory (D:\PYTHON\Projects\Django\DSS)
+        echo 2. Check that the frontend directory exists with package.json file
+        echo 3. Verify file permissions on the frontend directory
+        echo.
+        pause
+        exit /b 1
+    )
+) else (
+    echo [FRONTEND ERROR] Cannot find frontend directory
+    echo [FRONTEND ERROR DETAILS] Current directory: %CD%
+    echo [FRONTEND ERROR DETAILS] Directory contents:
+    dir /b
     echo.
     echo Troubleshooting:
     echo 1. Make sure you're in the project root directory (D:\PYTHON\Projects\Django\DSS)
@@ -33,10 +90,11 @@ if not exist "frontend\package.json" (
     exit /b 1
 )
 
-echo Starting Document Solutions Development Servers...
+echo [ALL CHECKS PASSED] Starting Document Solutions Development Servers...
 echo.
 
 :: Check if Python is available
+echo [PYTHON CHECK] Checking if Python is available...
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo ERROR: Python is not installed or not in PATH.
@@ -48,9 +106,13 @@ if %errorlevel% neq 0 (
     echo.
     pause
     exit /b 1
+) else (
+    echo [PYTHON SUCCESS] Python is available
+    python --version
 )
 
 :: Check if Node.js is available
+echo [NODE CHECK] Checking if Node.js is available...
 node --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo ERROR: Node.js is not installed or not in PATH.
@@ -62,9 +124,13 @@ if %errorlevel% neq 0 (
     echo.
     pause
     exit /b 1
+) else (
+    echo [NODE SUCCESS] Node.js is available
+    node --version
 )
 
 :: Check if virtual environment exists
+echo [VENV CHECK] Checking if virtual environment exists...
 if not exist "venv\Scripts\activate.bat" (
     echo WARNING: Virtual environment not found. Creating one...
     python -m venv venv
@@ -80,10 +146,12 @@ if not exist "venv\Scripts\activate.bat" (
     )
     echo Virtual environment created successfully.
     echo.
+) else (
+    echo [VENV SUCCESS] Virtual environment found
 )
 
 :: Activate virtual environment
-echo Activating virtual environment...
+echo [VENV ACTIVATE] Activating virtual environment...
 call venv\Scripts\activate.bat
 if %errorlevel% neq 0 (
     echo ERROR: Failed to activate virtual environment.
@@ -94,9 +162,13 @@ if %errorlevel% neq 0 (
     echo.
     pause
     exit /b 1
+) else (
+    echo [VENV ACTIVATE SUCCESS] Virtual environment activated
+    echo [VENV ACTIVATE DETAILS] Current Python path: %PYTHONPATH%
 )
 
 :: Check if Django is installed
+echo [DJANGO CHECK] Checking if Django is installed...
 python -c "import django; print('Django version:', django.get_version())" >nul 2>&1
 if %errorlevel% neq 0 (
     echo Installing Django and other Python dependencies...
@@ -114,9 +186,13 @@ if %errorlevel% neq 0 (
     )
     echo Python dependencies installed successfully.
     echo.
+) else (
+    echo [DJANGO SUCCESS] Django is installed
+    python -c "import django; print('Django version:', django.get_version())"
 )
 
 :: Check if Node modules are installed
+echo [NPM CHECK] Checking if Node modules are installed...
 if not exist "frontend\node_modules" (
     echo Installing Node.js dependencies...
     cd frontend
@@ -135,6 +211,8 @@ if not exist "frontend\node_modules" (
     cd ..
     echo Node.js dependencies installed successfully.
     echo.
+) else (
+    echo [NPM SUCCESS] Node modules found
 )
 
 :: Start backend server
