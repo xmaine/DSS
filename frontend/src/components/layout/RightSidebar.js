@@ -51,6 +51,7 @@ const RightSidebar = ({ userRole, isSystemAdmin }) => {
         { id: 'document-types', label: 'Document Types', icon: <TagIcon className="w-5 h-5" />, path: 'document-types' },
         { id: 'user-management', label: 'User Management', icon: <UserGroupIcon className="w-5 h-5" />, path: 'user-management' },
         { id: 'audit-logs', label: 'Audit Logs', icon: <ReportIcon className="w-5 h-5" />, path: 'audit-logs' },
+        { id: 'api-diagnostics', label: 'API Diagnostics', icon: <ReportIcon className="w-5 h-5" />, path: 'api-diagnostics' },
       ];
     } else {
       return [
@@ -58,6 +59,7 @@ const RightSidebar = ({ userRole, isSystemAdmin }) => {
         { id: 'shared-with-me', label: 'Shared With Me', icon: <ShareIcon className="w-5 h-5" />, path: 'shared-with-me' },
         { id: 'recent-documents', label: 'Recent Documents', icon: <ClockIcon className="w-5 h-5" />, path: 'recent-documents' },
         { id: 'document-types', label: 'Document Types', icon: <TagIcon className="w-5 h-5" />, path: 'document-types' },
+        { id: 'api-diagnostics', label: 'API Diagnostics', icon: <ReportIcon className="w-5 h-5" />, path: 'api-diagnostics' },
       ];
     }
   };

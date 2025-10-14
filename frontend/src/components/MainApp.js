@@ -14,6 +14,7 @@ import Workflows from './admin/Workflows';
 import SettingsPage from './pages/SettingsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import SharedWithMePage from './pages/SharedWithMePage';
+import ApiDiagnostics from './ApiDiagnostics';
 import { 
   SearchIcon, 
   UserCircleIcon, 
@@ -160,6 +161,10 @@ const MainApp = ({ onLogout, user }) => {
       // Upload page
       case 'upload-document':
         return <div>Upload Document Page - To be implemented</div>;
+      
+      // API Diagnostics page
+      case 'api-diagnostics':
+        return <ApiDiagnostics />;
       
       // Default to dashboard if section not recognized
       default:
@@ -323,6 +328,7 @@ const MainApp = ({ onLogout, user }) => {
                   (isSeniorDeptHead || isDeptHead) ? 'Workflow Instances' : 'My Workflows')}
                 {activeSection === 'audit-logs' && 'Audit Logs'}
                 {activeSection === 'my-owned-documents' && 'My Documents'}
+                {activeSection === 'api-diagnostics' && 'API Diagnostics'}
               </h1>
             </div>
             {renderActivePage()}
