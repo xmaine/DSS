@@ -16,6 +16,8 @@ import NotificationsPage from './pages/NotificationsPage';
 import SharedWithMePage from './pages/SharedWithMePage';
 import ApiDiagnostics from './ApiDiagnostics';
 import UploadPage from './pages/UploadPage';
+import MyDocumentsPage from './pages/MyDocumentsPage';
+import PlaceholderPage from './pages/PlaceholderPage';
 import { 
   SearchIcon, 
   UserCircleIcon, 
@@ -107,7 +109,7 @@ const MainApp = ({ onLogout, user }) => {
       case 'document-library':
       case 'my-folders':
       case 'my-owned-documents':
-        return <DocumentsPage isAdminView={false} />;
+        return <MyDocumentsPage />;
       
       case 'shared-with-me':
         return <SharedWithMePage />;
@@ -162,6 +164,35 @@ const MainApp = ({ onLogout, user }) => {
       // Upload page
       case 'upload-document':
         return <UploadPage />;
+      
+      // My Documents page
+      case 'my-owned-documents':
+        return <MyDocumentsPage />;
+      
+      // Placeholder pages for unimplemented features
+      case 'role-management':
+        return <PlaceholderPage title="Role Management" description="Manage user roles and permissions." />;
+      
+      case 'reports':
+        return <PlaceholderPage title="Reports" description="View system reports and analytics." />;
+      
+      case 'create-folder':
+        return <PlaceholderPage title="Create Folder" description="Create a new folder in the document hierarchy." />;
+      
+      case 'share-document':
+        return <PlaceholderPage title="Share Document" description="Share documents with other users or groups." />;
+      
+      case 'rate-document':
+        return <PlaceholderPage title="Rate Document" description="Rate and review documents." />;
+      
+      case 'link-document':
+        return <PlaceholderPage title="Link Document" description="Create links between related documents." />;
+      
+      case 'version-history':
+        return <PlaceholderPage title="Version History" description="View and manage document version history." />;
+      
+      case 'file-locking':
+        return <PlaceholderPage title="File Locking" description="Manage document locking and unlocking." />;
       
       // API Diagnostics page
       case 'api-diagnostics':
