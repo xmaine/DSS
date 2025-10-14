@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Sidebar from './layout/Sidebar';
+import RightSidebar from './layout/RightSidebar';
 import DashboardPage from './pages/DashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import DocumentsPage from './pages/DocumentsPage';
@@ -10,18 +11,23 @@ import Permissions from './admin/Permissions';
 import AuditLogs from './admin/AuditLogs';
 import SystemConfiguration from './admin/SystemConfiguration';
 import Workflows from './admin/Workflows';
-import SettingsPage from './pages/SettingsPage'; // Import SettingsPage
+import SettingsPage from './pages/SettingsPage';
+import NotificationsPage from './pages/NotificationsPage';
+import SharedWithMePage from './pages/SharedWithMePage';
 import { 
   SearchIcon, 
   UserCircleIcon, 
   MenuIcon, 
   NotificationIcon, 
-  DocumentIcon 
+  DocumentIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from './ui/Icons';
-import { logout } from '../services/api'; // Import logout function
+import { logout } from '../services/api';
 
 const MainApp = ({ onLogout, user }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); // State for user dropdown menu
@@ -39,6 +45,11 @@ const MainApp = ({ onLogout, user }) => {
 
   // Get the user's role name for the frontend
   const userRole = user && user.role ? getFrontendRoleName(user.role) : 'Employee';
+  
+  // Check user role types
+  const isSystemAdmin = userRole === 'System Administrator';
+  const isSeniorDeptHead = userRole === 'Senior Department Head';
+  const isDeptHead = userRole === 'Department Head';
 
   const handleSectionChange = (section) => {
     console.log('Section change requested:', section);
@@ -81,128 +92,77 @@ const MainApp = ({ onLogout, user }) => {
   };
 
   const renderActivePage = () => {
-    // Check if user is System Administrator
-    const isSystemAdmin = userRole === 'System Administrator';
-    
-    console.log('Rendering page for section:', activeSection, 'User role:', userRole, 'Is admin:', isSystemAdmin);
-    
+    // Render different components based on the active section
     switch (activeSection) {
+      // Dashboard pages
       case 'dashboard':
         return isSystemAdmin ? <AdminDashboardPage /> : <DashboardPage />;
+      
+      // Document pages
       case 'my-documents':
-        return isSystemAdmin ? <DocumentsPage isAdminView={true} /> : <DocumentsPage />;
-      case 'shared-with-me':
       case 'recent-documents':
+      case 'search':
       case 'document-library':
-      case 'my-owned-documents':
-        return <DocumentsPage />;
       case 'my-folders':
+      case 'my-owned-documents':
+        return <DocumentsPage isAdminView={false} />;
+      
+      case 'shared-with-me':
+        return <SharedWithMePage />;
+      
       case 'shared-folders':
       case 'all-folders':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Folder management page will be implemented here.</p>
-          </div>
-        );
+        return <DocumentsPage isAdminView={isSystemAdmin} />;
+      
+      // User Management pages (System Administrator)
       case 'user-management':
-        return <UsersAndRoles />;
+      case 'department-management':
+        return isSystemAdmin ? <UsersAndRoles /> : <DashboardPage />;
+      
+      // Department Management pages (Senior Department Head)
       case 'department-users':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Department users page will be implemented here.</p>
-          </div>
-        );
-      case 'role-management':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Role management page will be implemented here.</p>
-          </div>
-        );
-      case 'document-types':
-        return <DocumentTypes />;
-      case 'tags-correspondents':
-        return <TagsCorrespondents />;
-      case 'version-history':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Version history page will be implemented here.</p>
-          </div>
-        );
-      case 'file-locking':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">File locking page will be implemented here.</p>
-          </div>
-        );
-      case 'notifications':
-      case 'notifs':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Notifications page will be implemented here.</p>
-          </div>
-        );
-      case 'reports':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Reports page will be implemented here.</p>
-          </div>
-        );
-      case 'settings':
-      case 'system-config':
-        return <SettingsPage />;
-      case 'upload-document':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Upload document page will be implemented here.</p>
-          </div>
-        );
-      case 'create-folder':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Create folder page will be implemented here.</p>
-          </div>
-        );
-      case 'share-document':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Share document page will be implemented here.</p>
-          </div>
-        );
-      case 'rate-document':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Rate document page will be implemented here.</p>
-          </div>
-        );
-      case 'link-document':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Link document page will be implemented here.</p>
-          </div>
-        );
-      case 'search':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Search page will be implemented here.</p>
-          </div>
-        );
-      case 'permissions':
-      case 'permission-settings':
-        return <Permissions />;
-      case 'audit-logs':
-        return <AuditLogs />;
-      case 'system-config':
-        return <SystemConfiguration />;
-      case 'workflows':
-        return <Workflows />;
+      case 'department-structure':
+        return isSeniorDeptHead ? <UsersAndRoles /> : <DashboardPage />;
+      
+      // Team Management pages (Department Head)
       case 'team-management':
-        return (
-          <div className="bg-white p-6 rounded-lg border border-gray-200">
-            <p className="text-gray-700">Team management page will be implemented here.</p>
-          </div>
-        );
+        return isDeptHead ? <UsersAndRoles /> : <DashboardPage />;
+      
+      // Document configuration pages (System Administrator)
+      case 'document-types':
+        return isSystemAdmin ? <DocumentTypes /> : <DashboardPage />;
+      
+      case 'tags-correspondents':
+        return isSystemAdmin ? <TagsCorrespondents /> : <DashboardPage />;
+      
+      case 'permission-settings':
+        return isSystemAdmin ? <Permissions /> : <DashboardPage />;
+      
+      case 'system-config':
+        return isSystemAdmin ? <SystemConfiguration /> : <DashboardPage />;
+      
+      // Workflow pages (different for each role)
+      case 'workflows':
+        return isSystemAdmin ? <Workflows isAdminView={true} /> : <Workflows isAdminView={false} />;
+      
+      // Audit pages (System Administrator)
+      case 'audit-logs':
+        return isSystemAdmin ? <AuditLogs /> : <DashboardPage />;
+      
+      // Notification pages
+      case 'notifications':
+        return <NotificationsPage />;
+      
+      // Settings page
+      case 'settings':
+        return <SettingsPage />;
+      
+      // Upload page
+      case 'upload-document':
+        return <div>Upload Document Page - To be implemented</div>;
+      
+      // Default to dashboard if section not recognized
       default:
-        console.log('No specific page for section, showing default dashboard');
         return isSystemAdmin ? <AdminDashboardPage /> : <DashboardPage />;
     }
   };
@@ -298,6 +258,18 @@ const MainApp = ({ onLogout, user }) => {
               </div>
             )}
           </div>
+          
+          {/* Right Sidebar Toggle Button - Moved to the rightmost position */}
+          <button 
+            onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+            className="p-2 rounded-full hover:bg-gray-100"
+          >
+            {isRightSidebarOpen ? (
+              <ChevronRightIcon className="w-6 h-6 text-black" />
+            ) : (
+              <ChevronLeftIcon className="w-6 h-6 text-black" />
+            )}
+          </button>
         </div>
       </div>
 
@@ -318,8 +290,8 @@ const MainApp = ({ onLogout, user }) => {
           <div className="flex-grow overflow-y-auto p-4 bg-white">
             <div className="mb-4">
               <h1 className="text-xl font-semibold text-black">
-                {activeSection === 'dashboard' && 'Dashboard'}
-                {activeSection === 'my-documents' && 'My Documents'}
+                {activeSection === 'dashboard' && 'Home / Dashboard'}
+                {activeSection === 'my-documents' && 'Documents'}
                 {activeSection === 'shared-with-me' && 'Shared With Me'}
                 {activeSection === 'recent-documents' && 'Recent Documents'}
                 {activeSection === 'search' && 'Search'}
@@ -328,6 +300,10 @@ const MainApp = ({ onLogout, user }) => {
                 {activeSection === 'shared-folders' && 'Shared Folders'}
                 {activeSection === 'all-folders' && 'All Folders'}
                 {activeSection === 'user-management' && 'User Management'}
+                {activeSection === 'department-management' && 'Department Management'}
+                {activeSection === 'department-users' && 'Departmental User Management'}
+                {activeSection === 'department-structure' && 'Departmental Structure'}
+                {activeSection === 'team-management' && 'Team User Management'}
                 {activeSection === 'role-management' && 'Role Management'}
                 {activeSection === 'permission-settings' && 'Permission Settings'}
                 {activeSection === 'document-types' && 'Document Types'}
@@ -342,57 +318,23 @@ const MainApp = ({ onLogout, user }) => {
                 {activeSection === 'share-document' && 'Share Document/Folder'}
                 {activeSection === 'rate-document' && 'Rate Document'}
                 {activeSection === 'link-document' && 'Link Document'}
-                {activeSection === 'department-users' && 'Department Users'}
                 {activeSection === 'system-config' && 'System Configuration'}
-                {activeSection === 'workflows' && 'Workflows'}
+                {activeSection === 'workflows' && (isSystemAdmin ? 'Workflow Templates' : 
+                  (isSeniorDeptHead || isDeptHead) ? 'Workflow Instances' : 'My Workflows')}
                 {activeSection === 'audit-logs' && 'Audit Logs'}
-                {activeSection === 'team-management' && 'Team Management'}
                 {activeSection === 'my-owned-documents' && 'My Documents'}
-                {activeSection === 'notifs' && 'Notifications'}
               </h1>
             </div>
             {renderActivePage()}
           </div>
         </div>
 
-        {/* --- Right Property Panels --- */}
-        {activeSection === 'dashboard' && (
-          <div className="w-64 bg-gray-50 border-l border-gray-200 flex flex-col">
-            {/* --- Properties Panel --- */}
-            <div className="flex-1 overflow-y-auto p-3">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Properties</h3>
-              <div className="space-y-3">
-                <div className="bg-white p-3 rounded border border-gray-200">
-                  <h4 className="text-xs font-medium text-gray-700 mb-2">Document Info</h4>
-                  <div className="space-y-2 text-xs text-gray-600">
-                    <div className="flex justify-between">
-                      <span>Created:</span>
-                      <span>Oct 2, 2025</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Modified:</span>
-                      <span>Oct 5, 2025</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Size:</span>
-                      <span>2.4 MB</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-white p-3 rounded border border-gray-200">
-                  <h4 className="text-xs font-medium text-gray-700 mb-2">Tags</h4>
-                  <div className="flex flex-wrap gap-1">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Finance</span>
-                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Report</span>
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded">Urgent</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* --- Removed Tools Panel --- */}
-          </div>
+        {/* --- Right Sidebar --- */}
+        {isRightSidebarOpen && activeSection === 'dashboard' && (
+          <RightSidebar 
+            userRole={userRole} 
+            isSystemAdmin={isSystemAdmin} 
+          />
         )}
       </main>
 

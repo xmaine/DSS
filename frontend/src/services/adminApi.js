@@ -1,9 +1,8 @@
 import axios from 'axios';
-import { API_BASE_URL } from '../api/config';
 
 // Create an axios instance with default configuration for admin endpoints
 const adminApi = axios.create({
-  baseURL: `${API_BASE_URL}/admin`, // Admin API base URL
+  baseURL: '/api/admin', // Use relative path to work with proxy
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -14,11 +13,13 @@ const adminApi = axios.create({
 // Request interceptor to add authentication token if available
 adminApi.interceptors.request.use(
   (config) => {
+    console.log('Admin API Request:', config.method?.toUpperCase(), config.url);
     // For session authentication, we don't need to add tokens
     // The session cookie will be sent automatically with withCredentials: true
     return config;
   },
   (error) => {
+    console.error('Admin API Request Error:', error);
     return Promise.reject(error);
   }
 );
@@ -26,9 +27,11 @@ adminApi.interceptors.request.use(
 // Response interceptor to handle errors
 adminApi.interceptors.response.use(
   (response) => {
+    console.log('Admin API Response:', response.status, response.config.url, response.data);
     return response;
   },
   (error) => {
+    console.error('Admin API Response Error:', error.response?.status, error.response?.config?.url, error.response?.data);
     if (error.response?.status === 401) {
       // Handle unauthorized access
       window.location.href = '/login';

@@ -56,7 +56,7 @@ Okay, excellent point. A clean, role-based sidebar is crucial for a user-friendl
 This structure ensures that each user role sees a streamlined set of options relevant to their responsibilities, enhancing usability and reducing clutter.
 
 **Implementation Status:**
-*   System Administrator sidebar: **COMPLETED**
-*   Senior Department Head sidebar: **IN PROGRESS**
-*   Department Head sidebar: **COMPLETED**
-*   Employee sidebar: **COMPLETED**
+*   System Administrator sidebar: COMPLETED
+*   Senior Department Head sidebar: IN PROGRESS
+*   Department Head sidebar: COMPLETED
+*   Employee sidebar: COMPLETED

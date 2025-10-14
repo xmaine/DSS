@@ -8,22 +8,18 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [authChecked, setAuthChecked] = useState(false);
 
   // Check if user is already authenticated
   useEffect(() => {
     console.log('App: Checking authentication status...');
     const checkAuthStatus = async () => {
-      // Prevent multiple simultaneous auth checks
-      if (authChecked) return;
-      
       try {
         setLoading(true);
         const response = await getCurrentUser();
         console.log('App: Auth response:', response);
-        if (response.data && response.data.id) {
-          console.log('App: User authenticated:', response.data);
-          setUser(response.data);
+        if (response.data && response.data.data && response.data.data.id) {
+          console.log('App: User authenticated:', response.data.data);
+          setUser(response.data.data);
           setIsAuthenticated(true);
         } else {
           console.log('App: No user data in response');
@@ -38,18 +34,16 @@ function App() {
       } finally {
         console.log('App: Finished authentication check');
         setLoading(false);
-        setAuthChecked(true);
       }
     };
 
     checkAuthStatus();
-  }, [authChecked]);
+  }, []);
 
   const handleLoginSuccess = (userData) => {
     console.log('App: Login successful, user:', userData);
     setUser(userData);
     setIsAuthenticated(true);
-    setAuthChecked(true);
     setLoading(false);
   };
 
@@ -57,7 +51,6 @@ function App() {
     console.log('App: Logout requested');
     setUser(null);
     setIsAuthenticated(false);
-    setAuthChecked(false); // Reset auth check so it runs again
     setLoading(false);
   };
 

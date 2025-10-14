@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, searchAdminUsers } from '../../services/adminApi';
-import { getAdminDepartments } from '../../services/adminApi';
+import { getAdminUsers, createAdminUser, updateAdminUser, deleteAdminUser, searchAdminUsers, getAdminDepartments } from '../../services/adminApi';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);

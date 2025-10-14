@@ -80,9 +80,9 @@ const AdminDashboardPage = () => {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4">
       {/* YouTube-style dashboard with panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Main content area */}
-        <div className="lg:col-span-2 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+        {/* Main content area - full width since right sidebar is handled by MainApp */}
+        <div className="space-y-4">
           {/* System Health Status */}
           <div className="bg-white rounded border border-gray-200 p-4">
             <div className="flex justify-between items-center mb-3">
@@ -136,6 +136,19 @@ const AdminDashboardPage = () => {
             </ul>
           </div>
           
+          {/* Security Alerts */}
+          <div className="bg-white rounded border border-gray-200 p-4">
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-semibold text-black">Security Alerts</h2>
+            </div>
+            <div className="text-sm text-gray-700">
+              <p>No critical security alerts at this time.</p>
+              <div className="mt-2 p-2 bg-yellow-50 rounded">
+                <p className="text-yellow-700">Regular security audits recommended.</p>
+              </div>
+            </div>
+          </div>
+          
           {/* User Statistics */}
           <div className="bg-white rounded border border-gray-200 p-4">
             <div className="flex justify-between items-center mb-3">
@@ -172,10 +185,7 @@ const AdminDashboardPage = () => {
               </ul>
             </div>
           </div>
-        </div>
-        
-        {/* Right sidebar panels */}
-        <div className="space-y-4">
+          
           {/* Document Statistics */}
           <div className="bg-white rounded border border-gray-200 p-4">
             <h3 className="font-semibold text-black mb-3">Document Statistics</h3>
@@ -211,26 +221,6 @@ const AdminDashboardPage = () => {
             </div>
           </div>
           
-          {/* Quick Links */}
-          <div className="bg-white rounded border border-gray-200 p-4">
-            <h3 className="font-semibold text-black mb-3">Quick Links</h3>
-            <div className="space-y-2">
-              {dashboardData.quick_links && dashboardData.quick_links.length > 0 ? (
-                dashboardData.quick_links.map((link, index) => (
-                  <button 
-                    key={index}
-                    className="w-full text-left p-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm"
-                    onClick={() => window.location.hash = link.url}
-                  >
-                    {link.name}
-                  </button>
-                ))
-              ) : (
-                <p className="text-gray-500 text-sm">No quick links available</p>
-              )}
-            </div>
-          </div>
-          
           {/* Global Role Permissions */}
           <div className="bg-white rounded border border-gray-200 p-4">
             <h3 className="font-semibold text-black mb-3">Global Role Permissions</h3>
@@ -256,6 +246,41 @@ const AdminDashboardPage = () => {
               ) : (
                 <p className="text-gray-500 text-sm">No permissions data available</p>
               )}
+            </div>
+          </div>
+          
+          {/* System Usage */}
+          <div className="bg-white rounded border border-gray-200 p-4">
+            <h3 className="font-semibold text-black mb-3">System Usage</h3>
+            <div className="space-y-2">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Storage Usage</span>
+                  <span>{dashboardData.system_health?.storage_usage || '0%'}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full" 
+                    style={{ width: dashboardData.system_health?.storage_usage || '0%' }}
+                  ></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Active Users</span>
+                  <span>{dashboardData.user_statistics?.active_users || 0}/{dashboardData.user_statistics?.total_users || 0}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-green-600 h-2 rounded-full" 
+                    style={{ 
+                      width: dashboardData.user_statistics?.total_users ? 
+                        `${(dashboardData.user_statistics.active_users / dashboardData.user_statistics.total_users) * 100}%` : 
+                        '0%' 
+                    }}
+                  ></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

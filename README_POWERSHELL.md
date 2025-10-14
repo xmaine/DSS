@@ -63,3 +63,4 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 - Keep the server windows open for the servers to run
 - You can close the main PowerShell window after servers start
 - Chrome will open automatically to the frontend
+
