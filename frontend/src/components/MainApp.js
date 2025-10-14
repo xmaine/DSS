@@ -15,6 +15,7 @@ import SettingsPage from './pages/SettingsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import SharedWithMePage from './pages/SharedWithMePage';
 import ApiDiagnostics from './ApiDiagnostics';
+import UploadPage from './pages/UploadPage';
 import { 
   SearchIcon, 
   UserCircleIcon, 
@@ -160,7 +161,7 @@ const MainApp = ({ onLogout, user }) => {
       
       // Upload page
       case 'upload-document':
-        return <div>Upload Document Page - To be implemented</div>;
+        return <UploadPage />;
       
       // API Diagnostics page
       case 'api-diagnostics':
