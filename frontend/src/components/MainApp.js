@@ -368,10 +368,11 @@ const MainApp = ({ onLogout, user }) => {
         </div>
 
         {/* --- Right Sidebar --- */}
-        {isRightSidebarOpen && activeSection === 'dashboard' && (
+        {isRightSidebarOpen && (
           <RightSidebar 
             userRole={userRole} 
             isSystemAdmin={isSystemAdmin} 
+            activeSection={activeSection}
           />
         )}
       </main>
