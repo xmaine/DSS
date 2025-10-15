@@ -121,10 +121,6 @@ const MainApp = ({ onLogout, user }) => {
       case 'all-folders':
         return <DocumentsPage isAdminView={isSystemAdmin} />;
       
-      // My Documents page
-      case 'my-owned-documents':
-        return <MyDocumentsPage />;
-      
       // User Management pages (System Administrator)
       case 'user-management':
       case 'department-management':
@@ -171,10 +167,6 @@ const MainApp = ({ onLogout, user }) => {
       // Upload page
       case 'upload-document':
         return <UploadPage />;
-      
-      // My Documents page
-      case 'my-owned-documents':
-        return <MyDocumentsPage />;
       
       // Placeholder pages for unimplemented features
       case 'role-management':
