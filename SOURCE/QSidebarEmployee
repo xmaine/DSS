@@ -1,0 +1,213 @@
+
+
+Okay, this updated layout information is crucial for refining the blueprint. We'll work within your defined areas:
+
+1.  **Main Header:** (Untouched) Houses the system name.
+2.  **Left Sidebar:** For navigation options.
+3.  **Top-Center Navigation Header:** For `TOP BAR FUNCTIONALITY`.
+4.  **Main Content Area:** Below the `Top-Center Navigation Header`, displaying content based on Left Sidebar selection.
+5.  **Right Sidebar:** Fixed with tabs: `Properties`, `Action Buttons`, `Quick Links`.
+
+This structure forces us to think about where each piece of information and functionality from the previous comprehensive Employee role breakdown should live. The challenge, especially, will be managing the "Right Property Panel" functionality from the "Documents" view, as it now needs to be integrated into the fixed "Right Sidebar" with tabs.
+
+Let's break down each area for the Employee role.
+
+---
+
+### Detailed Blueprint for Employee Role UI - Integrating into Current Layout
+
+#### 1. Main Header (Untouched)
+
+*   **Content:** "DOCUMENT SOLUTIONS" (or similar system name).
+*   **Functionality:** Not explicitly detailed, but generally holds the system logo, name, and possibly global utility icons (e.g., help, feedback).
+
+#### 2. Left Sidebar (For Left Sidebar Options)
+
+This area will house the core navigation for the Employee, as previously defined. It should be collapsible/expandable to optimize screen real estate.
+
+*   **Component:** A standard navigation menu component (e.g., `<ul>` with `<li>` items, or a specialized sidebar component from a UI library).
+*   **Styling:** Should clearly indicate the currently active (selected) navigation item. Icons next to each item are highly recommended for visual clarity.
+*   **Content (Employee Specific):**
+    *   **Dashboard** (Icon: Home/Dashboard)
+    *   **Documents** (Icon: Folder/Document stack)
+    *   **Notifications** (Icon: Bell/Alert)
+    *   **Shared With Me** (Icon: Share/Users)
+    *   **My Workflows** (Icon: Workflow/Process)
+
+#### 3. Top-Center Navigation Header (TOP BAR FUNCTIONALITY)
+
+This area is ideal for context-sensitive actions, search, and user-specific controls that are not part of the main header.
+
+*   **Component:** A horizontal navigation/action bar.
+*   **Content:**
+    *   **1. Global Search Bar:**
+        *   **Placement:** Prominently on the left side of this header.
+        *   **Functionality:** A text input field (`<input type="search">`).
+            *   **Scope:** Defaults to "All accessible documents." Can have a small dropdown/toggle next to it to switch scope to "Current Folder" (if in Documents view).
+            *   **Behavior:** As the user types, suggestions can appear (document names, tags, document types). Pressing Enter performs a full search, displaying results in the Main Content Area.
+            *   **Data Source:** Searches `dms_document.name`, `dms_document.description`, `dms_document.extracted_text`, and associated `dms_tag.name` for documents the `current_user_id` has `view` permission for.
+    *   **2. Contextual Actions/Breadcrumbs (Dynamic):**
+        *   **Placement:** Central, to the right of the search bar.
+        *   **Functionality:** This area dynamically updates based on the Left Sidebar selection and current navigation within a section.
+            *   **"Home / Dashboard" selected:** Might display "Dashboard Overview."
+            *   **"Documents" selected & folder navigated:** Displays breadcrumbs (e.g., `Home > Department X > Project Y`), each clickable to navigate back up the hierarchy.
+            *   **"Documents" selected & document opened:** Displays `Documents > [Folder Name] > [Document Name]`.
+            *   **"Notifications" selected:** Displays "Notifications."
+            *   **"Shared With Me" selected:** Displays "Shared With Me."
+            *   **"My Workflows" selected:** Displays "My Workflows."
+    *   **3. User Controls (Right-aligned):**
+        *   **Placement:** Far right of the header.
+        *   **Content:**
+            *   **User Avatar/Icon:** Clicking opens a dropdown menu.
+            *   **Username Display:** (e.g., "John Doe").
+            *   **Dropdown Menu Items:**
+                *   "My Profile" (link to personal settings/profile view).
+                *   "Change Password."
+                *   "Logout."
+            *   **Unread Notifications Badge:** A small numerical badge over a bell icon, showing the count of unread notifications for `current_user_id`. Clicking it can either navigate to the "Notifications" page or display a quick popover of recent notifications.
+
+#### 4. Main Content Area
+
+This area is where the dynamic content for each Left Sidebar selection will be rendered.
+
+##### A. Main Content for "Home / Dashboard"
+
+*   **Layout:** A flexible grid layout using cards or distinct sections for each widget.
+*   **Content:**
+    *   **Section 1: "Welcome, [Employee's First Name]!"**
+        *   Large, friendly text.
+        *   **Component:** `<h1>` or `<h2>` tag for the greeting.
+    *   **Section 2: "My Pending Tasks" (Interactive List/Table)**
+        *   **Component:** A data table with clear columns and interactive rows.
+        *   **Header:** "My Pending Tasks" with an optional "View All" link to "My Workflows" (filtered for pending).
+        *   **Columns:** `Document Name` (linked), `Task Name`, `Assigned By`, `Due Date`.
+        *   **Row Interaction:** Clicking a row (or a dedicated "Action" button within the row) navigates to the associated document and immediately brings up the **"Complete Task" modal (described under My Workflows main content).**
+        *   **Visuals:** `Due Date` styling (red for overdue, yellow for nearing due date).
+        *   **Data Source:** Top 5-7 `dms_workflowtask` entries for `current_user_id` where `status = 'PENDING'`, ordered by `dms_workflowtask.due_date` ASC.
+    *   **Section 3: "Recently Viewed Documents" (Card/List View)**
+        *   **Component:** A list or small card component.
+        *   **Header:** "Recently Viewed Documents."
+        *   **Items:** Each item shows `document.name` (linked), `document.folder.name`, `document.updated_at`.
+        *   **Data Source:** Top 5-7 `dms_user_activity` (derived from audit logs for `VIEW_DOCUMENT` or `EDIT_DOCUMENT` actions for the `current_user_id`).
+    *   **Section 4: "My Recent Uploads" (List View)**
+        *   **Component:** A simple list.
+        *   **Header:** "My Recent Uploads."
+        *   **Items:** Each item shows `document.name` (linked), `document.created_at`, `document.document_type.name`.
+        *   **Data Source:** Top 3-5 `dms_document` entries where `uploader_id = current_user_id`, ordered by `created_at` DESC.
+    *   **Section 5: "System Announcements" (Text Panel)**
+        *   **Component:** A scrollable text or carousel panel.
+        *   **Header:** "Important Announcements."
+        *   **Content:** Latest active announcements with `title` and short excerpt.
+
+##### B. Main Content for "Documents"
+
+*   **Layout:** Three main columnar sections. The "Folder Tree View" will be part of this main content area, rather than a separate Left Sidebar item. The "Right Sidebar" will hold the document-specific details previously in the "Right Property Panel."
+    *   **Left Column (Within Main Content): "Folder Tree View"**
+        *   **Component:** An interactive tree view.
+        *   **Functionality:**
+            *   **Data Source:** Hierarchical display of `dms_folder`s where `current_user_id` has `view` permission.
+            *   **Interaction:** Clicking a folder node loads its contents into the "Central Document List." Context menu (right-click or icon) for folder-specific actions (e.g., "Create Sub-folder", "Share Folder").
+    *   **Central Column (Within Main Content): "Document List & Controls"**
+        *   **Top Sub-bar:**
+            *   **"Upload Document" Button:** Prominently placed. **Visibility:** Only if `add_document` permission exists for the current folder.
+                *   **Action:** Opens a modal for document upload (file input, `document.name`, `description`, `document_type_id`, `correspondent_id`, `tags`, optional "Start Workflow").
+            *   **Filters & Sorts:** Dropdowns for `document_type`, `correspondent`, `tag`, `uploader`, `date_range`. Sorting by `name`, `upload_date`, `updated_at`, `file_size`.
+        *   **Main Display:** A data table or grid view.
+            *   **Sub-folders List:** (If any) `folder.name` (linked), `owner`, `updated_at`.
+            *   **Documents Table/Grid:**
+                *   **Columns:** `Name` (linked), `Type`, `Uploader`, `Last Updated`, `Version`, `Locked By`, `Tags`.
+                *   **Row Interaction:** Clicking `Name` or a "View" button will open the document in the embedded viewer (in the Right Sidebar) and update its tabs. Selecting a row will update the Right Sidebar.
+                *   **Context Menu (on document row):** (Triggered by ellipsis icon or right-click).
+                    *   **View, Edit, Download, Share, Lock/Unlock, Version History, Add Tag, Add Annotation/Comment, Start Workflow, Delete, Move/Copy.** (Visibility and enablement based on `guardian` permissions for `current_user_id` and specific `dms_document`).
+    *   **No Right Property Panel here:** Its functionality is absorbed by the dedicated Right Sidebar.
+
+##### C. Main Content for "Notifications"
+
+*   **Layout:** A single, central data table or list component.
+*   **Content:**
+    *   **Top Bar (within Main Content):**
+        *   **"Mark All as Read" Button.**
+        *   **"Clear All Read Notifications" Button.**
+        *   **Filter:** Dropdown for "All," "Unread," "Read."
+    *   **Notifications Table:**
+        *   **Columns:** `Status` (icon for read/unread), `Message`, `Timestamp`, `Actions`.
+        *   **Action Column:** "View Item" button (navigates to `notification.link_to_item`), "Mark Read/Unread" toggle, "Delete" button.
+        *   **Visuals:** Unread notifications styled distinctly.
+        *   **Data Source:** All `dms_notification` for `current_user_id`, ordered by `created_at` DESC.
+
+##### D. Main Content for "Shared With Me"
+
+*   **Layout:** A single, central data table.
+*   **Content:**
+    *   **Top Bar (within Main Content):**
+        *   **Filter Toggle:** Buttons for "Documents" / "Folders."
+        *   **Search Input:** Search within shared items.
+    *   **Shared Items Table:**
+        *   **Columns:** `Item Name` (linked), `Item Type`, `Shared By`, `My Permission`, `Shared On`, `Expires On`, `Actions`.
+        *   **Visuals:** Highlight expired/expiring items.
+        *   **Action Column:** "View," "Edit," "Download" (visibility based on `permission_level`).
+        *   **Data Source:** `dms_shareditem` entries where `shared_with_user_id = current_user_id` or `current_user_id` is in `shared_with_group_id`.
+
+##### E. Main Content for "My Workflows"
+
+*   **Layout:** A single, central data table.
+*   **Content:**
+    *   **Top Bar (within Main Content):**
+        *   **Filter Options:** Dropdowns for `status` ("All", "Pending", "Completed", etc.), `due_date` range.
+        *   **Search Input:** Search by `document.name` or `workflow_step.name`.
+    *   **My Tasks Table:**
+        *   **Columns:** `Document Name` (linked), `Workflow Name`, `Current Step`, `Status`, `Assigned On`, `Due Date`, `Completed On`, `Actions`.
+        *   **Visuals:** `Due Date` highlighting for overdue/nearing due.
+        *   **Action Column:**
+            *   **"View Document" Button.**
+            *   **"Complete Task" Button (for PENDING tasks):**
+                *   **Action:** Opens a modal:
+                    *   `Required Action` text display.
+                    *   `Action Taken` (dropdown/radio: Approve, Reject, Complete, Edit & Complete).
+                    *   `Comment` (textarea).
+                    *   "Submit" button.
+            *   **"Request Clarification" Button (for PENDING tasks):** Opens a modal to send a notification to the workflow initiator.
+            *   **"View Details" Button (for completed/rejected tasks):** Shows `action_taken` and `comment`.
+        *   **Data Source:** All `dms_workflowtask` for `assigned_to_id = current_user_id`.
+
+#### 5. Right Sidebar (Fixed with Tabs: Properties, Action Buttons, Quick Links)
+
+This fixed sidebar needs to dynamically update its content based on what is selected in the "Main Content Area," particularly when a document or folder is selected in the "Documents" view, or a task in "My Workflows."
+
+*   **Component:** A tabbed interface component within a fixed sidebar.
+*   **Tabs:**
+    *   **1. Properties Tab**
+        *   **Functionality:**
+            *   **No item selected:** Display "Select a document or folder to view properties."
+            *   **Folder selected (in Documents):**
+                *   **Content:** `Folder Name`, `Parent Folder`, `Owner`, `Created At`, `Updated At`, `Is Active`.
+                *   **Actions:** "Edit Folder Metadata" (if `edit_folder` permission).
+            *   **Document selected (in Documents or other views):**
+                *   **Content:** All document metadata: `document.name`, `document.description`, `document_type.name`, `correspondent.name`, `uploader.username`, `created_at`, `updated_at`, `tags` (clickable), `document.rating` (average).
+                *   **Annotations/Comments:** A sub-section listing `dms_annotation`s for the `current_version`, with `user`, `content`, `page_number`, `created_at`. An "Add Annotation/Comment" input field (if `add_annotation` permission).
+                *   **Workflow Status:** (If document is in a workflow) `dms_workflowinstance.status`, `current_step.name`, `initiated_by.username`, timeline of `dms_workflowtask`s.
+                *   **Actions:** "Edit Metadata" button (if `edit_document` permission).
+            *   **Workflow Task selected (in My Workflows):**
+                *   **Content:** `Document Name`, `Workflow Template Name`, `Current Step Name`, `Assigned To`, `Status`, `Assigned At`, `Due Date`, `Completed At`, `Action Taken`, `Comment`.
+    *   **2. Action Buttons Tab**
+        *   **Functionality:** Provides context-sensitive actions for the currently selected item. This consolidates many actions previously in document/folder context menus or embedded within view modals.
+            *   **No item selected:** Display "Select an item to see available actions."
+            *   **Folder selected (in Documents):**
+                *   **Buttons:** "Create Sub-folder" (if `add_folder` permission), "Upload Document" (if `add_document`), "Share Folder" (if `share_folder`), "Delete Folder" (if `delete_folder`). (Each only visible/enabled if permissions allow).
+            *   **Document selected (in Documents or other views):**
+                *   **Buttons:** "View Document," "Edit Document," "Download," "Share," "Lock/Unlock," "Version History," "Add Tag," "Add Annotation," "Start Workflow," "Delete Document," "Move/Copy." (Each only visible/enabled if permissions and document status allow, e.g., "Edit" disabled if locked by another user).
+            *   **Workflow Task selected (in My Workflows):**
+                *   **Buttons:** "View Document," "Complete Task" (if pending), "Request Clarification" (if pending).
+    *   **3. Quick Links Tab**
+        *   **Functionality:** Provides quick access to common system areas or user-specific frequently used links. These are mostly static or semi-static.
+            *   **Content (Employee Specific):**
+                *   "My Profile" (link)
+                *   "Settings" (link to personal preferences)
+                *   "Help Documentation" (external link)
+                *   "Report an Issue" (link to a feedback/support form)
+                *   "Recently Deleted Documents" (link to a recycle bin-like view, if implemented for soft-deleted items by the user).
+                *   Dynamic links, e.g., "Link to Department Wiki" (if configured by admin).
+
+---
+
+This refined blueprint carefully places all functionalities within your specified layout, ensuring that the Employee role's UI is logical, efficient, and aligned with the `QPLAN.md` and `QDATASTRUC.md` requirements. The dynamic nature of the `Top-Center Navigation Header` and `Right Sidebar` will be key to a fluid user experience.

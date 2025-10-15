@@ -18,6 +18,9 @@ import ApiDiagnostics from './ApiDiagnostics';
 import UploadPage from './pages/UploadPage';
 import MyDocumentsPage from './pages/MyDocumentsPage';
 import PlaceholderPage from './pages/PlaceholderPage';
+import EmployeeDashboardPage from './pages/EmployeeDashboardPage';
+import EmployeeDocumentsPage from './pages/EmployeeDocumentsPage';
+import EmployeeWorkflowsPage from './pages/EmployeeWorkflowsPage';
 import { 
   SearchIcon, 
   UserCircleIcon, 
@@ -54,6 +57,7 @@ const MainApp = ({ onLogout, user }) => {
   const isSystemAdmin = userRole === 'System Administrator';
   const isSeniorDeptHead = userRole === 'Senior Department Head';
   const isDeptHead = userRole === 'Department Head';
+  const isEmployee = userRole === 'Employee';
 
   const handleSectionChange = (section) => {
     console.log('Section change requested:', section);
@@ -100,7 +104,7 @@ const MainApp = ({ onLogout, user }) => {
     switch (activeSection) {
       // Dashboard pages
       case 'dashboard':
-        return isSystemAdmin ? <AdminDashboardPage /> : <DashboardPage />;
+        return isSystemAdmin ? <AdminDashboardPage /> : (isEmployee ? <EmployeeDashboardPage /> : <DashboardPage />);
       
       // Document pages
       case 'my-documents':
@@ -108,8 +112,7 @@ const MainApp = ({ onLogout, user }) => {
       case 'search':
       case 'document-library':
       case 'my-folders':
-      case 'my-owned-documents':
-        return <MyDocumentsPage />;
+        return isEmployee ? <EmployeeDocumentsPage /> : <DocumentsPage isAdminView={false} />;
       
       case 'shared-with-me':
         return <SharedWithMePage />;
@@ -117,6 +120,10 @@ const MainApp = ({ onLogout, user }) => {
       case 'shared-folders':
       case 'all-folders':
         return <DocumentsPage isAdminView={isSystemAdmin} />;
+      
+      // My Documents page
+      case 'my-owned-documents':
+        return <MyDocumentsPage />;
       
       // User Management pages (System Administrator)
       case 'user-management':
@@ -147,7 +154,7 @@ const MainApp = ({ onLogout, user }) => {
       
       // Workflow pages (different for each role)
       case 'workflows':
-        return isSystemAdmin ? <Workflows isAdminView={true} /> : <Workflows isAdminView={false} />;
+        return isSystemAdmin ? <Workflows isAdminView={true} /> : (isEmployee ? <EmployeeWorkflowsPage /> : <Workflows isAdminView={false} />);
       
       // Audit pages (System Administrator)
       case 'audit-logs':
