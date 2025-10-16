@@ -269,24 +269,6 @@ const sidebarConfig = {
         ]
       },
       {
-        name: 'Upload',
-        items: [
-          { id: 'upload-document', label: 'Upload', icon: 'upload' }
-        ]
-      },
-      {
-        name: 'My Documents',
-        items: [
-          { id: 'my-owned-documents', label: 'My Documents', icon: 'document' }
-        ]
-      },
-      {
-        name: 'My Workflows',
-        items: [
-          { id: 'workflows', label: 'My Workflows', icon: 'backup' }
-        ]
-      },
-      {
         name: 'Notifications',
         items: [
           { id: 'notifications', label: 'Notifications', icon: 'notification' }
@@ -296,6 +278,12 @@ const sidebarConfig = {
         name: 'Shared',
         items: [
           { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' }
+        ]
+      },
+      {
+        name: 'My Workflows',
+        items: [
+          { id: 'workflows', label: 'My Workflows', icon: 'backup' }
         ]
       }
     ]

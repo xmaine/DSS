@@ -164,9 +164,9 @@ const MainApp = ({ onLogout, user }) => {
       case 'settings':
         return <SettingsPage />;
       
-      // Upload page
+      // Upload page is only available for Employee through the Documents page
       case 'upload-document':
-        return <UploadPage />;
+        return isEmployee ? <EmployeeDocumentsPage /> : <UploadPage />;
       
       // Placeholder pages for unimplemented features
       case 'role-management':
