@@ -29,14 +29,14 @@ router.register(r'documents', document_views.DocumentViewSet)
 router.register(r'tags', document_views.TagViewSet)
 router.register(r'correspondents', document_views.CorrespondentViewSet)
 router.register(r'document_types', document_views.DocumentTypeViewSet)
-router.register(r'folders', document_views.FolderViewSet)
+router.register(r'folders', document_views.FolderViewSet, basename='folder')  # Added basename parameter
 router.register(r'workflows', processing_views.WorkflowTemplateViewSet)
 router.register(r'workflow_steps', processing_views.WorkflowStepViewSet)
 
 # Admin routers
 admin_router = routers.DefaultRouter()
 admin_router.register(r'users', user_views.UserManagementViewSet)
-admin_router.register(r'documents', user_views.DocumentManagementViewSet)
+admin_router.register(r'documents', user_views.DocumentManagementViewSet, basename='admin_document')
 admin_router.register(r'workflows', processing_views.WorkflowManagementViewSet, basename='workflow_management')
 admin_router.register(r'audit-logs', user_views.AuditLogViewSet, basename='audit_log')
 admin_router.register(r'departments', user_views.DepartmentViewSet)

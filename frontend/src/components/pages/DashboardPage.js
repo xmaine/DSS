@@ -1,35 +1,94 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import DocumentTable from '../ui/DocumentTable';
+import { getDocuments } from '../../services/api';
 
-// Mock data - in a real app, this would come from your API
-const mockInboxData = [
-  { id: 1, created: 'Oct 02, 2025', title: 'Q3 Financial Report', tags: ['Finance', 'Report', 'Urgent'], correspondent: 'Accounting Dept.' },
-  { id: 2, created: 'Oct 01, 2025', title: 'New Marketing Campaign Brief', tags: ['Marketing', 'Planning'], correspondent: 'Jane Doe' },
-  { id: 3, created: 'Sep 28, 2025', title: 'Scanned HR Onboarding Docs', tags: ['HR', 'Scanned'], correspondent: 'HR Bot' },
-  { id: 4, created: 'Sep 25, 2025', title: 'Project Alpha - Technical Specs', tags: ['Engineering', 'Project Alpha'], correspondent: 'John Smith' },
-];
+const DashboardPage = ({ user }) => {
+  const [inboxData, setInboxData] = useState([]);
+  const [recentData, setRecentData] = useState([]);
+  const [stats, setStats] = useState({
+    inbox: 0,
+    total: 0,
+    characters: '0',
+    tags: 0,
+    correspondents: 0,
+    docTypes: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-const mockRecentData = [
-  { id: 5, created: 'Oct 02, 2025', title: 'Q3 Financial Report', tags: ['Finance', 'Report', 'Urgent'], correspondent: 'Accounting Dept.' },
-  { id: 6, created: 'Sep 30, 2025', title: 'Client Meeting Minutes', tags: ['Meeting', 'Client X'], correspondent: 'Sarah Lee' },
-  { id: 7, created: 'Sep 29, 2025', title: 'Supplier Invoice #INV-1024', tags: ['Invoice', 'Supplier Y'], correspondent: 'Automated System' },
-];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch documents from API
+        const response = await getDocuments();
+        const documents = response.data;
+        
+        // Process inbox data (documents shared with user)
+        // In a real implementation, this would filter for documents shared with the current user
+        const processedInboxData = documents.slice(0, 4).map(doc => ({
+          id: doc.id,
+          created: new Date(doc.created_at).toLocaleDateString(),
+          title: doc.name,
+          tags: doc.tags || [],
+          correspondent: doc.correspondent_name || doc.uploader_name || 'Unknown'
+        }));
+        
+        // Process recent data (recently added documents)
+        const processedRecentData = documents.slice(0, 3).map(doc => ({
+          id: doc.id,
+          created: new Date(doc.created_at).toLocaleDateString(),
+          title: doc.name,
+          tags: doc.tags || [],
+          correspondent: doc.correspondent_name || doc.uploader_name || 'Unknown'
+        }));
+        
+        // Update stats
+        const updatedStats = {
+          inbox: processedInboxData.length,
+          total: documents.length,
+          characters: '0', // Would need to calculate from document content
+          tags: 0, // Would need to fetch from tags API
+          correspondents: 0, // Would need to fetch from correspondents API
+          docTypes: 0, // Would need to fetch from document types API
+        };
+        
+        setInboxData(processedInboxData);
+        setRecentData(processedRecentData);
+        setStats(updatedStats);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-// Mock statistics data
-const mockStats = {
-  inbox: 8,
-  total: 84,
-  characters: '2,610,849',
-  tags: 28,
-  correspondents: 7,
-  docTypes: 8,
-};
+    fetchData();
+  }, []);
 
-const DashboardPage = () => {
   const handleDocumentClick = (document) => {
     console.log('Document clicked:', document);
     // In a real app, this would navigate to the document detail page
   };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <p>Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -37,12 +96,24 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
         {/* Main content area - full width since right sidebar is handled by MainApp */}
         <div className="space-y-4">
+          {/* Welcome Section */}
+          <div className="bg-white rounded border border-gray-200 p-4">
+            <h2 className="text-lg font-semibold text-black">Welcome!</h2>
+          </div>
+
+          {/* Department Information - positioned between welcome greeting and other content */}
+          {user && user.department && (
+            <div className="bg-white rounded border border-gray-200 p-4">
+              <p className="text-gray-600">Department | {user.department}</p>
+            </div>
+          )}
+          
           <div className="bg-white rounded border border-gray-200 p-4">
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-semibold text-black">Inbox</h2>
-              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{mockStats.inbox} documents</span>
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{stats.inbox} documents</span>
             </div>
-            <DocumentTable title="" data={mockInboxData} onDocumentClick={handleDocumentClick} />
+            <DocumentTable title="" data={inboxData} onDocumentClick={handleDocumentClick} />
           </div>
           
           <div className="bg-white rounded border border-gray-200 p-4">
@@ -50,7 +121,7 @@ const DashboardPage = () => {
               <h2 className="text-lg font-semibold text-black">Recently Added</h2>
               <button className="text-xs text-blue-600 hover:text-blue-800">View All</button>
             </div>
-            <DocumentTable title="" data={mockRecentData} onDocumentClick={handleDocumentClick} />
+            <DocumentTable title="" data={recentData} onDocumentClick={handleDocumentClick} />
           </div>
           
           {/* Recent activity panel */}

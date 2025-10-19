@@ -9,17 +9,41 @@ class FolderSerializer(serializers.ModelSerializer):
 class DocumentSerializer(serializers.ModelSerializer):
     tags = serializers.StringRelatedField(many=True, read_only=True)
     current_version_file = serializers.SerializerMethodField()
+    uploader_name = serializers.SerializerMethodField()
+    folder_name = serializers.SerializerMethodField()
+    document_type_name = serializers.SerializerMethodField()
+    correspondent_name = serializers.SerializerMethodField()
+    locked_by_name = serializers.SerializerMethodField()
+    current_version_number = serializers.SerializerMethodField()
     
     class Meta:
         model = Document
-        fields = ['id', 'uuid', 'name', 'description', 'folder', 'document_type', 'correspondent', 
-                  'uploader', 'current_version', 'created_at', 'updated_at', 'locked_by', 
-                  'locked_at', 'is_active', 'extracted_text', 'tags', 'current_version_file']
+        fields = ['id', 'uuid', 'name', 'description', 'folder', 'folder_name', 'document_type', 'document_type_name', 'correspondent', 
+                  'correspondent_name', 'uploader', 'uploader_name', 'current_version', 'created_at', 'updated_at', 'locked_by', 
+                  'locked_by_name', 'locked_at', 'is_active', 'extracted_text', 'tags', 'current_version_file', 'current_version_number']
     
     def get_current_version_file(self, obj):
         if obj.current_version:
             return obj.current_version.file.url if obj.current_version.file else None
         return None
+    
+    def get_uploader_name(self, obj):
+        return obj.uploader.username if obj.uploader else None
+    
+    def get_folder_name(self, obj):
+        return obj.folder.name if obj.folder else None
+    
+    def get_document_type_name(self, obj):
+        return obj.document_type.name if obj.document_type else None
+    
+    def get_correspondent_name(self, obj):
+        return obj.correspondent.name if obj.correspondent else None
+    
+    def get_locked_by_name(self, obj):
+        return obj.locked_by.username if obj.locked_by else None
+    
+    def get_current_version_number(self, obj):
+        return str(obj.current_version.version_number) if obj.current_version else None
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:

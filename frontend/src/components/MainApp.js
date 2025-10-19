@@ -38,6 +38,7 @@ const MainApp = ({ onLogout, user }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); // State for user dropdown menu
+  const [selectedDocument, setSelectedDocument] = useState(null); // State for selected document
 
   // Map backend role values to frontend role names
   const getFrontendRoleName = (backendRole) => {
@@ -62,6 +63,13 @@ const MainApp = ({ onLogout, user }) => {
   const handleSectionChange = (section) => {
     console.log('Section change requested:', section);
     setActiveSection(section);
+    // Clear selected document when changing sections
+    setSelectedDocument(null);
+  };
+
+  // Handle document selection from EmployeeDocumentsPage
+  const handleDocumentSelect = (document) => {
+    setSelectedDocument(document);
   };
 
   // Handle user logout
@@ -104,7 +112,7 @@ const MainApp = ({ onLogout, user }) => {
     switch (activeSection) {
       // Dashboard pages
       case 'dashboard':
-        return isSystemAdmin ? <AdminDashboardPage /> : (isEmployee ? <EmployeeDashboardPage /> : <DashboardPage />);
+        return isSystemAdmin ? <AdminDashboardPage /> : (isEmployee ? <EmployeeDashboardPage user={user} /> : <DashboardPage />);
       
       // Document pages
       case 'my-documents':
@@ -112,7 +120,10 @@ const MainApp = ({ onLogout, user }) => {
       case 'search':
       case 'document-library':
       case 'my-folders':
-        return isEmployee ? <EmployeeDocumentsPage /> : <DocumentsPage isAdminView={false} />;
+        // Pass document selection handler to EmployeeDocumentsPage
+        return isEmployee ? 
+          <EmployeeDocumentsPage onDocumentSelect={handleDocumentSelect} user={user} /> : 
+          <DocumentsPage isAdminView={false} />;
       
       case 'shared-with-me':
         return <SharedWithMePage />;
@@ -166,7 +177,7 @@ const MainApp = ({ onLogout, user }) => {
       
       // Upload page is only available for Employee through the Documents page
       case 'upload-document':
-        return isEmployee ? <EmployeeDocumentsPage /> : <UploadPage />;
+        return isEmployee ? <EmployeeDocumentsPage onDocumentSelect={handleDocumentSelect} user={user} /> : <UploadPage />;
       
       // Placeholder pages for unimplemented features
       case 'role-management':
@@ -372,6 +383,7 @@ const MainApp = ({ onLogout, user }) => {
             userRole={userRole} 
             isSystemAdmin={isSystemAdmin} 
             activeSection={activeSection}
+            selectedDocument={selectedDocument} // Pass selected document to RightSidebar
           />
         )}
       </main>

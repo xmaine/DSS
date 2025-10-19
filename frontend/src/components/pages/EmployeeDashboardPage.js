@@ -1,40 +1,113 @@
 import React, { useState, useEffect } from 'react';
+import { getDocuments } from '../../services/api';
 
-const EmployeeDashboardPage = () => {
-  // Mock data - in a real app, this would come from your API
-  const [pendingTasks, setPendingTasks] = useState([
-    { id: 1, document: 'Q3 Financial Report', task: 'Review & Approve', assignedBy: 'John Smith', dueDate: '2025-10-20' },
-    { id: 2, document: 'Marketing Campaign Brief', task: 'Provide Feedback', assignedBy: 'Jane Doe', dueDate: '2025-10-18' },
-    { id: 3, document: 'Project Alpha Specs', task: 'Technical Review', assignedBy: 'Engineering Lead', dueDate: '2025-10-17' }
-  ]);
+const EmployeeDashboardPage = ({ user }) => {
+  const [pendingTasks, setPendingTasks] = useState([]);
+  const [recentDocuments, setRecentDocuments] = useState([]);
+  const [recentUploads, setRecentUploads] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [recentDocuments, setRecentDocuments] = useState([
-    { id: 1, name: 'Q3 Financial Report', folder: 'Finance Documents', lastModified: '2025-10-15' },
-    { id: 2, name: 'Marketing Campaign Brief', folder: 'Marketing Docs', lastModified: '2025-10-14' },
-    { id: 3, name: 'Project Alpha Specs', folder: 'Engineering', lastModified: '2025-10-13' },
-    { id: 4, name: 'HR Onboarding Docs', folder: 'HR Department', lastModified: '2025-10-12' }
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch real documents from the API
+        const response = await getDocuments();
+        const documents = response.data;
+        
+        // Process documents for the dashboard
+        const recentDocs = documents.slice(0, 4).map(doc => ({
+          id: doc.id,
+          name: doc.name,
+          folder: doc.folder_name || 'Uncategorized',
+          lastModified: new Date(doc.updated_at).toLocaleDateString()
+        }));
+        
+        const recentUploadsData = documents.slice(0, 3).map(doc => ({
+          id: doc.id,
+          name: doc.name,
+          created: new Date(doc.created_at).toLocaleDateString(),
+          type: doc.document_type_name || 'Document'
+        }));
+        
+        // In a real implementation, these would come from actual workflow tasks
+        // For now, we'll have an empty array since we're removing mock data
+        const tasks = [];
+        
+        // Announcements would come from a real API in production
+        // For now, we'll have an empty array since we're removing mock data
+        const announcementsData = [];
+        
+        setRecentDocuments(recentDocs);
+        setRecentUploads(recentUploadsData);
+        setPendingTasks(tasks);
+        setAnnouncements(announcementsData);
+        
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load dashboard data');
+        setLoading(false);
+        
+        // Set empty arrays on error to avoid showing mock data
+        setPendingTasks([]);
+        setRecentDocuments([]);
+        setRecentUploads([]);
+        setAnnouncements([]);
+      }
+    };
 
-  const [recentUploads, setRecentUploads] = useState([
-    { id: 1, name: 'Team Meeting Notes', created: '2025-10-15', type: 'Document' },
-    { id: 2, name: 'Project Update', created: '2025-10-14', type: 'Report' },
-    { id: 3, name: 'Expense Report', created: '2025-10-12', type: 'Spreadsheet' }
-  ]);
+    fetchData();
+  }, []);
 
-  const [announcements, setAnnouncements] = useState([
-    { id: 1, title: 'System Maintenance Scheduled', excerpt: 'Maintenance will occur this weekend. Plan accordingly.' },
-    { id: 2, title: 'New Document Types Available', excerpt: 'We\'ve added new document types for better categorization.' }
-  ]);
-
-  const handleTaskAction = (taskId, action) => {
+  const handleTaskAction = async (taskId, action) => {
     console.log(`Performing ${action} on task ${taskId}`);
     // In a real app, this would call your API
+    try {
+      switch (action) {
+        case 'complete':
+          // Complete task logic
+          break;
+        case 'clarification':
+          // Request clarification logic
+          break;
+        default:
+          console.warn(`Unknown action: ${action}`);
+      }
+    } catch (error) {
+      console.error(`Error performing ${action} on task ${taskId}:`, error);
+    }
   };
 
-  const handleViewDocument = (documentId) => {
+  const handleViewDocument = async (documentId) => {
     console.log(`Viewing document ${documentId}`);
     // In a real app, this would navigate to the document
+    try {
+      // View document logic would go here
+      console.log(`View document ${documentId} functionality would be implemented here`);
+    } catch (error) {
+      console.error(`Error viewing document ${documentId}:`, error);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <p>Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <p className="text-red-500">{error}</p>
+        <p className="text-gray-500 mt-2">Error loading dashboard data.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -43,6 +116,13 @@ const EmployeeDashboardPage = () => {
         <h1 className="text-2xl font-bold text-gray-800">Welcome, Employee!</h1>
         <p className="text-gray-600 mt-2">Here's what's happening with your documents and tasks today.</p>
       </div>
+
+      {/* Department Information - positioned between welcome greeting and pending tasks */}
+      {user && user.department && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <p className="text-gray-600">Department | {user.department}</p>
+        </div>
+      )}
 
       {/* Pending Tasks Section */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">

@@ -27,6 +27,11 @@ export const HeartIcon = ({ className = "w-6 h-6" }) => <Icon path="M12 21.35l-1
 export const UploadIcon = ({ className = "w-6 h-6" }) => <Icon path="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" className={className} />;
 export const PlusIcon = ({ className = "w-6 h-6" }) => <Icon path="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" className={className} />;
 
+// Action icons
+export const ViewIcon = ({ className = "w-4 h-4" }) => <Icon path="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" className={className} />;
+export const EditIcon = ({ className = "w-4 h-4" }) => <Icon path="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" className={className} />;
+export const DeleteIcon = ({ className = "w-4 h-4" }) => <Icon path="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" className={className} />;
+
 // Chevron icons for collapsible sections
 export const ChevronRightIcon = ({ className = "w-4 h-4" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={className}>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAdminDashboard, getGlobalRolePermissions } from '../../services/adminApi';
 
-const AdminDashboardPage = () => {
+const AdminDashboardPage = ({ user }) => {  // Added user prop
   const [dashboardData, setDashboardData] = useState(null);
   const [permissionsData, setPermissionsData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -83,6 +83,18 @@ const AdminDashboardPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
         {/* Main content area - full width since right sidebar is handled by MainApp */}
         <div className="space-y-4">
+          {/* Welcome Section for Admin */}
+          <div className="bg-white rounded border border-gray-200 p-4">
+            <h2 className="text-lg font-semibold text-black">Administrator Dashboard</h2>
+          </div>
+
+          {/* Department Information - positioned between welcome greeting and other content */}
+          {user && user.department && (
+            <div className="bg-white rounded border border-gray-200 p-4">
+              <p className="text-gray-600">Department | {user.department}</p>
+            </div>
+          )}
+          
           {/* System Health Status */}
           <div className="bg-white rounded border border-gray-200 p-4">
             <div className="flex justify-between items-center mb-3">

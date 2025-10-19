@@ -168,7 +168,9 @@ def create_sample_folders():
     # Get users for folder ownership
     try:
         admin_user = CustomUser.objects.get(username='sysadmins')
-        dept_head_user = CustomUser.objects.get(username='depthd')
+        finance_user = CustomUser.objects.get(username='depthd')  # Finance department head
+        # For Publication department, we'll use the admin user as there's no dedicated head
+        publication_user = admin_user
     except CustomUser.DoesNotExist:
         print("  - Required users not found. Skipping folder creation.")
         return
@@ -176,7 +178,7 @@ def create_sample_folders():
     # Root folders for each department
     finance_folder, created = Folder.objects.get_or_create(
         name='Finance Documents',
-        owner=admin_user,
+        owner=finance_user,  # Assign to Finance department head
         path='/Finance Documents',
         defaults={'is_active': True}
     )
@@ -185,7 +187,7 @@ def create_sample_folders():
     
     publication_folder, created = Folder.objects.get_or_create(
         name='Publication Documents',
-        owner=admin_user,
+        owner=publication_user,  # Assign to admin user (Publication dept)
         path='/Publication Documents',
         defaults={'is_active': True}
     )
@@ -194,10 +196,10 @@ def create_sample_folders():
     
     # Subfolders
     subfolders = [
-        ('Financial Reports', finance_folder, admin_user, '/Finance Documents/Financial Reports'),
-        ('Vendor Contracts', finance_folder, admin_user, '/Finance Documents/Vendor Contracts'),
-        ('Marketing Materials', publication_folder, dept_head_user, '/Publication Documents/Marketing Materials'),
-        ('Press Releases', publication_folder, dept_head_user, '/Publication Documents/Press Releases')
+        ('Financial Reports', finance_folder, finance_user, '/Finance Documents/Financial Reports'),
+        ('Vendor Contracts', finance_folder, finance_user, '/Finance Documents/Vendor Contracts'),
+        ('Marketing Materials', publication_folder, publication_user, '/Publication Documents/Marketing Materials'),
+        ('Press Releases', publication_folder, publication_user, '/Publication Documents/Press Releases')
     ]
     
     for name, parent, owner, path in subfolders:
@@ -210,6 +212,32 @@ def create_sample_folders():
         )
         if created:
             print(f"  - Created folder: {name}")
+
+def create_employee_personal_folders():
+    """Create personal folders for all employees"""
+    print("Creating personal folders for employees...")
+    
+    # Get all employees
+    employees = CustomUser.objects.filter(role='EMPLOYEE')
+    
+    for employee in employees:
+        # Create a personal folder for each employee
+        folder_name = f"{employee.username}'s Documents"
+        
+        # Check if folder already exists
+        folder_exists = Folder.objects.filter(name=folder_name, owner=employee).exists()
+        
+        if not folder_exists:
+            # Create the personal folder
+            personal_folder = Folder.objects.create(
+                name=folder_name,
+                owner=employee,
+                path=f"/{employee.department}/{folder_name}" if employee.department else f"/{folder_name}",
+                is_active=True
+            )
+            print(f"  - Created personal folder for {employee.username}: {folder_name}")
+        else:
+            print(f"  - Personal folder already exists for {employee.username}: {folder_name}")
 
 def create_sample_documents():
     """Create sample documents for testing - only two as requested."""
@@ -340,6 +368,9 @@ def main():
     print()
     
     create_sample_folders()
+    print()
+    
+    create_employee_personal_folders()  # Add this new function
     print()
     
     create_sample_documents()

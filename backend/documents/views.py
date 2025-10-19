@@ -2,9 +2,10 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.db.models import Q
 from .models import Document, Tag, Correspondent, DocumentType, SharedItem, DocumentRating, Annotation, Folder
 from users.models import CustomUser
-from .serializers import DocumentSerializer, TagSerializer, CorrespondentSerializer, DocumentTypeSerializer
+from .serializers import DocumentSerializer, TagSerializer, CorrespondentSerializer, DocumentTypeSerializer, FolderSerializer
 from .search import DocumentSearchService
 from .health_check import SystemHealthCheckService
 from .validation.models import DocumentCreate, DocumentUpdate, TagCreate, TagUpdate
@@ -14,8 +15,41 @@ import uuid
 class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.all()
     serializer_class = DocumentSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser)
+    
+    def get_queryset(self):
+        """
+        Filter documents based on user permissions:
+        - Admin users can see all documents
+        - Other users can see:
+          1. Documents they own (uploaded)
+          2. Documents explicitly shared with them
+          3. Documents in folders belonging to their department (based on owner's department)
+        """
+        user = self.request.user
+        
+        # Admin users can see all documents
+        if user.role == 'ADMIN':
+            return Document.objects.all()
+        
+        # For other users, filter based on permissions
+        # 1. Documents owned by the user (uploaded by them)
+        owned_documents = Q(uploader=user)
+        
+        # 2. Documents explicitly shared with the user
+        shared_documents = Q(shareditem__shared_with_user=user)
+        
+        # 3. Documents in folders belonging to the user's department
+        #    (where the folder owner belongs to the same department as the current user)
+        department_documents = Q(folder__owner__department=user.department) if user.department else Q()
+        
+        # Combine all conditions
+        queryset = Document.objects.filter(
+            owned_documents | shared_documents | department_documents
+        ).distinct()
+        
+        return queryset
     
     def create(self, request, *args, **kwargs):
         """
@@ -237,5 +271,38 @@ class DocumentTypeViewSet(viewsets.ModelViewSet):
 
 class FolderViewSet(viewsets.ModelViewSet):
     queryset = Folder.objects.all()
-    serializer_class = DocumentSerializer  # You would create a FolderSerializer
-    permission_classes = [permissions.AllowAny]
+    serializer_class = FolderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """
+        Filter folders based on user permissions:
+        - Admin users can see all folders
+        - Other users can see:
+          1. Folders they own
+          2. Folders explicitly shared with them
+          3. Folders belonging to their department (based on owner's department)
+        """
+        user = self.request.user
+        
+        # Admin users can see all folders
+        if user.role == 'ADMIN':
+            return Folder.objects.all()
+        
+        # For other users, filter based on permissions
+        # 1. Folders owned by the user
+        owned_folders = Q(owner=user)
+        
+        # 2. Folders explicitly shared with the user
+        shared_folders = Q(shareditem__shared_with_user=user)
+        
+        # 3. Folders belonging to the user's department
+        #    (where the folder owner belongs to the same department as the current user)
+        department_folders = Q(owner__department=user.department) if user.department else Q()
+        
+        # Combine all conditions
+        queryset = Folder.objects.filter(
+            owned_folders | shared_folders | department_folders
+        ).distinct()
+        
+        return queryset

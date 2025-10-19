@@ -831,23 +831,3 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class DocumentManagementViewSet(viewsets.ViewSet):
-    """
-    ViewSet for managing documents and folders
-    """
-    queryset = Document.objects.none()  # Required for router basename
-    permission_classes = [permissions.IsAuthenticated]
-    
-    @action(detail=False, methods=['get'], url_path='folder-tree')
-    def folder_tree(self, request):
-        """Get the folder tree for System Administrator"""
-        if request.user.role != 'ADMIN':
-            return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
-            
-        try:
-            # Get all folders
-            folders = Folder.objects.all()
-            serializer = FolderSerializer(folders, many=True)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response({'error': f'Failed to fetch folder tree: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

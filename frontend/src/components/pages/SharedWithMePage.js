@@ -1,19 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import DocumentTable from '../ui/DocumentTable';
+import { getDocuments } from '../../services/api';
 
 const SharedWithMePage = () => {
-  // Mock data - in a real app, this would come from your API
-  const mockSharedData = [
-    { id: 1, created: 'Oct 02, 2025', title: 'Q3 Financial Report', tags: ['Finance', 'Report', 'Urgent'], correspondent: 'Accounting Dept.', sharedBy: 'John Smith' },
-    { id: 2, created: 'Oct 01, 2025', title: 'New Marketing Campaign Brief', tags: ['Marketing', 'Planning'], correspondent: 'Jane Doe', sharedBy: 'Marketing Team' },
-    { id: 3, created: 'Sep 28, 2025', title: 'Scanned HR Onboarding Docs', tags: ['HR', 'Scanned'], correspondent: 'HR Bot', sharedBy: 'HR Department' },
-    { id: 4, created: 'Sep 25, 2025', title: 'Project Alpha - Technical Specs', tags: ['Engineering', 'Project Alpha'], correspondent: 'John Smith', sharedBy: 'Engineering Team' },
-  ];
+  const [documents, setDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchSharedDocuments = async () => {
+      try {
+        setLoading(true);
+        // In a real implementation, this would filter documents shared with the current user
+        const response = await getDocuments();
+        
+        // Process documents to match the expected format
+        const processedDocuments = response.data.map(doc => ({
+          id: doc.id,
+          created: new Date(doc.created_at).toLocaleDateString(),
+          title: doc.name,
+          tags: doc.tags || [],
+          correspondent: doc.correspondent_name || 'Unknown',
+          sharedBy: doc.uploader_name || 'Unknown'
+        }));
+        
+        setDocuments(processedDocuments);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching shared documents:', err);
+        setError('Failed to fetch shared documents. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSharedDocuments();
+  }, []);
 
   const handleDocumentClick = (document) => {
     console.log('Viewing shared document:', document);
     // In a real app, this would navigate to the document detail page
   };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <p>Loading shared documents...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -40,7 +83,7 @@ const SharedWithMePage = () => {
       
       <DocumentTable 
         title="Shared Documents" 
-        data={mockSharedData} 
+        data={documents} 
         onDocumentClick={handleDocumentClick} 
       />
     </div>
