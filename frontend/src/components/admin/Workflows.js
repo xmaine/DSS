@@ -106,7 +106,7 @@ const Workflows = () => {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-black">Workflows</h2>
+        <div></div>
         <button
           onClick={() => setShowForm(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"

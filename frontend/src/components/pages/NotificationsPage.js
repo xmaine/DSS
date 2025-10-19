@@ -21,7 +21,7 @@ const NotificationsPage = () => {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">Notifications</h2>
+        <div></div>
         <button 
           onClick={markAllAsRead}
           className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
