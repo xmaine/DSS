@@ -152,6 +152,12 @@ const sidebarConfig = {
         ]
       },
       {
+        name: 'Machine Management',
+        items: [
+          { id: 'machine-tokens', label: 'Machine Tokens', icon: 'lock' }
+        ]
+      },
+      {
         name: 'Notifications',
         items: [
           { id: 'notifications', label: 'Notifications', icon: 'notification' }

@@ -11,6 +11,7 @@ import Permissions from './admin/Permissions';
 import AuditLogs from './admin/AuditLogs';
 import SystemConfiguration from './admin/SystemConfiguration';
 import Workflows from './admin/Workflows';
+import MachineTokens from './admin/MachineTokens';
 import SettingsPage from './pages/SettingsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import SharedWithMePage from './pages/SharedWithMePage';
@@ -166,6 +167,10 @@ const MainApp = ({ onLogout, user }) => {
       // Audit pages (System Administrator)
       case 'audit-logs':
         return isSystemAdmin ? <AuditLogs /> : <DashboardPage />;
+      
+      // Machine Management pages (System Administrator)
+      case 'machine-tokens':
+        return isSystemAdmin ? <MachineTokens currentUser={user} /> : <DashboardPage />;
       
       // Notification pages
       case 'notifications':

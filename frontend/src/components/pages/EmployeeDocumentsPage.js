@@ -9,7 +9,8 @@ import {
   DeleteIcon, 
   ViewIcon 
 } from '../ui/Icons';
-import { getFolders, getDocuments } from '../../services/api';
+import { getFolders, getDocuments, createFolder } from '../../services/api';
+import { validateMachineToken } from '../../utils/machineToken';
 
 const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
   const [folders, setFolders] = useState([]);
@@ -21,79 +22,112 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [selectedDocuments, setSelectedDocuments] = useState([]); // For multiple selection
   const [searchQuery, setSearchQuery] = useState('');
+  const [showUploadDropdown, setShowUploadDropdown] = useState(false); // For upload dropdown
 
   // Fetch folders and documents from the database
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null); // Clear any previous errors
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null); // Clear any previous errors
+      
+      // Fetch folders
+      console.log('Fetching folders from API...');
+      const foldersResponse = await getFolders();
+      console.log('Folders API response:', foldersResponse);
+      
+      // Fetch documents
+      console.log('Fetching documents from API...');
+      const documentsResponse = await getDocuments();
+      console.log('Documents API response:', documentsResponse);
+      
+      // Process folders
+      if (foldersResponse.data && Array.isArray(foldersResponse.data)) {
+        // Log the raw folder data for debugging
+        console.log('Raw folder data from API:', foldersResponse.data);
         
-        // Fetch folders
-        console.log('Fetching folders from API...');
-        const foldersResponse = await getFolders();
-        console.log('Folders API response:', foldersResponse);
-        
-        // Fetch documents
-        console.log('Fetching documents from API...');
-        const documentsResponse = await getDocuments();
-        console.log('Documents API response:', documentsResponse);
-        
-        // Process folders
-        if (foldersResponse.data && Array.isArray(foldersResponse.data)) {
-          setFolders(foldersResponse.data);
-          console.log('Folders state updated with', foldersResponse.data.length, 'folders');
+        // Filter folders to only show those owned by the current user
+        const userFolders = foldersResponse.data.filter(folder => {
+          // Check if folder is owned by current user
+          const isOwnedByUser = (typeof folder.owner === 'object' && folder.owner !== null) 
+            ? folder.owner.id === user.id 
+            : folder.owner === user.id;
           
-          // Expand the first level folders by default
-          const topLevelFolders = foldersResponse.data.filter(folder => folder.parent_folder === null);
-          console.log('Top level folders:', topLevelFolders);
-          setExpandedFolders(new Set(topLevelFolders.map(folder => folder.id)));
-          console.log('Expanded folders set to:', Array.from(new Set(topLevelFolders.map(folder => folder.id))));
-        } else {
-          console.warn('Unexpected folder data format:', foldersResponse.data);
-          setFolders([]);
-        }
-        
-        // Process documents
-        if (documentsResponse.data && Array.isArray(documentsResponse.data)) {
-          // Convert API document data to the format expected by the UI
-          const processedDocuments = documentsResponse.data.map(doc => ({
-            id: doc.id,
-            name: doc.name,
-            type: doc.file_type || 'Unknown',
-            uploader: doc.uploader_name || doc.uploader || 'Unknown User',
-            lastModified: new Date(doc.updated_at || doc.created_at).toLocaleDateString(),
-            version: doc.current_version_number || '1.0',
-            lockedBy: doc.locked_by_name || null,
-            tags: doc.tags || [],
-            folder: doc.folder // Include folder ID for filtering
-          }));
-          
-          setDocuments(processedDocuments);
-          console.log('Documents state updated with', processedDocuments.length, 'documents');
-        } else {
-          console.warn('Unexpected document data format:', documentsResponse.data);
-          setDocuments([]);
-        }
-        
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        console.error('Error details:', {
-          message: err.message,
-          response: err.response,
-          status: err.response?.status,
-          data: err.response?.data
+          console.log(`Folder ${folder.name} (ID: ${folder.id}) - Owner: ${folder.owner}, User ID: ${user.id}, Owned by user: ${isOwnedByUser}`);
+          return isOwnedByUser;
         });
-        setError('Failed to load data: ' + (err.response?.data?.detail || err.message || 'Unknown error'));
+        
+        console.log('Filtered user folders:', userFolders);
+        setFolders(userFolders);
+        console.log('Folders state updated with', userFolders.length, 'folders');
+        
+        // Expand the first level folders by default
+        const topLevelFolders = userFolders.filter(folder => 
+          folder.parent_folder === null || 
+          (folder.name && folder.name.includes("'s Documents"))
+        );
+        console.log('Top level folders:', topLevelFolders);
+        setExpandedFolders(new Set(topLevelFolders.map(folder => folder.id)));
+        console.log('Expanded folders set to:', Array.from(new Set(topLevelFolders.map(folder => folder.id))));
+      } else {
+        console.warn('Unexpected folder data format:', foldersResponse.data);
         setFolders([]);
+      }
+      
+      // Process documents
+      if (documentsResponse.data && Array.isArray(documentsResponse.data)) {
+        // Convert API document data to the format expected by the UI
+        const processedDocuments = documentsResponse.data.map(doc => ({
+          id: doc.id,
+          name: doc.name,
+          type: doc.file_type || 'Unknown',
+          uploader: doc.uploader_name || doc.uploader || 'Unknown User',
+          lastModified: new Date(doc.updated_at || doc.created_at).toLocaleDateString(),
+          version: doc.current_version_number || '1.0',
+          lockedBy: doc.locked_by_name || null,
+          tags: doc.tags || [],
+          folder: doc.folder // Include folder ID for filtering
+        }));
+        
+        setDocuments(processedDocuments);
+        console.log('Documents state updated with', processedDocuments.length, 'documents');
+      } else {
+        console.warn('Unexpected document data format:', documentsResponse.data);
         setDocuments([]);
-        setLoading(false);
+      }
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response,
+        status: err.response?.status,
+        data: err.response?.data
+      });
+      setError('Failed to load data: ' + (err.response?.data?.detail || err.message || 'Unknown error'));
+      setFolders([]);
+      setDocuments([]);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showUploadDropdown && event.target.closest('#upload-combobox') === null) {
+        setShowUploadDropdown(false);
       }
     };
 
-    fetchData();
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUploadDropdown]);
 
   const toggleFolder = (folderId) => {
     const newExpanded = new Set(expandedFolders);
@@ -169,30 +203,14 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
       return <div className="p-2 text-gray-500">No folders available</div>;
     }
     
-    // Filter folders to show only the user's personal directory structure
-    let filteredFolders = folders;
-    if (user && user.id) {
-      // Show only folders owned by the user
-      // Note: folder.owner might be an object or just an ID depending on serialization
-      filteredFolders = folders.filter(folder => {
-        if (typeof folder.owner === 'object' && folder.owner !== null) {
-          // owner is an object with an id property
-          return folder.owner.id === user.id;
-        } else {
-          // owner is just an ID
-          return folder.owner === user.id;
-        }
-      });
-    }
-    
     // For root level, show only root-level folders owned by the user
-    // But also show personal folders that might have a parent (like emponly's Documents)
+    // But also show personal folders at the root level even if they have a parent
     const children = parentId === null 
-      ? filteredFolders.filter(folder => 
+      ? folders.filter(folder => 
           folder.parent_folder === null || 
           (folder.name && folder.name.includes("'s Documents"))
         )
-      : filteredFolders.filter(folder => folder.parent_folder === parentId);
+      : folders.filter(folder => folder.parent_folder === parentId);
       
     console.log(`Children for parentId=${parentId}:`, children);
     
@@ -210,7 +228,7 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
       <div className="pl-4"> {/* Using pl-4 instead of ml-${level * 4} for better Tailwind support */}
         {children.map(folder => {
           console.log(`Rendering folder:`, folder);
-          const hasChildren = filteredFolders.filter(f => f.parent_folder === folder.id).length > 0;
+          const hasChildren = folders.filter(f => f.parent_folder === folder.id).length > 0;
           const isExpanded = expandedFolders.has(folder.id);
           console.log(`Folder ${folder.id} hasChildren: ${hasChildren}, isExpanded: ${isExpanded}`);
           
@@ -282,14 +300,127 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     }
   };
 
-  const handleUploadDocument = async () => {
-    console.log('Opening upload document modal');
-    // In a real app, this would open an upload modal
+  const handleUploadFiles = async () => {
+    console.log('Opening upload files dialog');
     try {
-      // Upload document logic would go here
-      console.log('Upload document functionality would be implemented here');
+      // Validate machine token before allowing upload
+      const isValid = await validateMachineToken(user.username);
+      if (!isValid) {
+        alert('Machine token validation failed. Please contact your administrator.');
+        return;
+      }
+      
+      // In a real application, this would open a file upload dialog
+      // For now, we'll simulate the process
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.multiple = true; // Allow multiple file selection
+      fileInput.onchange = async (e) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+          alert(`${files.length} file(s) selected for upload. In a real application, these would be uploaded to the server.`);
+          // In a real app, you would:
+          // 1. Create FormData
+          // 2. Add the files to FormData
+          // 3. Call createDocument API endpoint for each file
+          // 4. Refresh the document list
+          await fetchData(); // Refresh the data
+        }
+      };
+      fileInput.click();
     } catch (error) {
-      console.error('Error uploading document:', error);
+      console.error('Error uploading files:', error);
+      alert('Error uploading files: ' + error.message);
+    }
+  };
+
+  const handleUploadFolders = async () => {
+    console.log('Opening upload folders dialog');
+    try {
+      // Validate machine token before allowing upload
+      const isValid = await validateMachineToken(user.username);
+      if (!isValid) {
+        alert('Machine token validation failed. Please contact your administrator.');
+        return;
+      }
+      
+      // In a real application, this would open a folder upload dialog
+      // For now, we'll show an alert
+      alert('Upload folders functionality would be implemented here. In a real application, this would allow you to upload entire folder structures.');
+    } catch (error) {
+      console.error('Error uploading folders:', error);
+      alert('Error uploading folders: ' + error.message);
+    }
+  };
+
+  const handleCreateFolder = async () => {
+    console.log('Opening create folder dialog');
+    try {
+      // In a real application, this would open a folder creation dialog
+      // For now, we'll use a prompt to get the folder name
+      const folderName = prompt('Enter the name for the new folder:');
+      if (folderName) {
+        // Create folder data with proper path
+        const folderData = {
+          name: folderName,
+          owner: user.id, // Set the current user as owner
+          is_active: true
+        };
+        
+        // Determine the path based on the selected folder or user's department
+        if (selectedFolder) {
+          // If a folder is selected, set it as the parent and create path
+          folderData.parent_folder = selectedFolder.id;
+          // For nested folders, we need to build the path correctly
+          if (selectedFolder.path) {
+            folderData.path = `${selectedFolder.path}/${folderName}`;
+          } else {
+            // Fallback if path is not available
+            folderData.path = `/${folderName}`;
+          }
+        } else {
+          // If no folder is selected, create in user's department folder
+          // This follows the pattern from the backend signals
+          if (user.department) {
+            folderData.path = `/${user.department} Documents/${folderName}`;
+          } else {
+            folderData.path = `/${folderName}`;
+          }
+        }
+        
+        console.log('Creating folder with data:', folderData);
+        
+        // Call the API to create the folder
+        await createFolder(folderData);
+        console.log(`Folder "${folderName}" created successfully`);
+        
+        // Refresh the folder list
+        await fetchData();
+        
+        alert(`Folder "${folderName}" created successfully!`);
+      }
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      alert('Error creating folder: ' + (error.response?.data?.detail || error.response?.data || error.message || 'Unknown error'));
+    }
+  };
+
+  const handleRefresh = async () => {
+    console.log('Refreshing documents and folders');
+    try {
+      // Refresh the data
+      await fetchData();
+      console.log('Refresh completed successfully');
+      alert('Data refreshed successfully!');
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      alert('Error refreshing data: ' + error.message);
     }
   };
 
@@ -319,14 +450,14 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     <div className="flex h-full bg-white rounded-lg border border-gray-200">
       {/* Left Column - Folder Tree View (as per UserEmployee.md specification) */}
       <div className="w-64 border-r border-gray-200 p-4"> {/* Fixed width to w-64 as per specification */}
-        <h3 className="font-semibold text-gray-800 mb-3">Folders</h3>
-        <div className="mb-4">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="font-semibold text-gray-800">Folders</h3>
           <button 
-            onClick={handleUploadDocument}
-            className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700"
+            onClick={handleCreateFolder}
+            className="flex items-center px-2 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
           >
-            <UploadIcon className="w-4 h-4 mr-2" />
-            Upload Document
+            <FolderIcon className="w-4 h-4 mr-1" />
+            Add Folder
           </button>
         </div>
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
@@ -336,12 +467,59 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
 
       {/* Central Column - Document List & Controls */}
       <div className="flex-1 flex flex-col">
-        {/* Top Sub-bar */}
-        <div className="p-4 border-b border-gray-200">
+        {/* Enhanced Navigation Header */}
+        <div className="p-4 border-b border-gray-200 bg-gray-50">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">
-              {selectedFolder ? selectedFolder.name : 'My Documents'}
-            </h2>
+            <div className="flex items-center space-x-2">
+              <div className="relative inline-block text-left">
+                <button 
+                  onClick={() => setShowUploadDropdown(!showUploadDropdown)}
+                  id="upload-combobox"
+                  className="flex items-center px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
+                  title="Upload"
+                >
+                  <UploadIcon className="w-4 h-4 mr-1" />
+                  <span>Upload</span>
+                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {showUploadDropdown && (
+                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                    <div className="py-1">
+                      <button 
+                        onClick={() => {
+                          setShowUploadDropdown(false);
+                          handleUploadFiles();
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Upload Files
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setShowUploadDropdown(false);
+                          handleUploadFolders();
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Upload Folder
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button 
+                onClick={handleRefresh}
+                className="flex items-center px-3 py-1.5 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors"
+                title="Refresh"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Refresh</span>
+              </button>
+            </div>
             <div className="flex space-x-2">
               <select className="border border-gray-300 rounded-md px-2 py-1 text-sm">
                 <option>All Types</option>

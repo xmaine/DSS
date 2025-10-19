@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { login } from '../services/api';
+import { generateMachineId, createMachineToken, validateMachineToken, ensureTokenDirectory } from '../utils/machineToken';
+import { verifyAndRestoreUserFolder } from '../utils/folderVerification';
 
 const LoginPage = ({ onLoginSuccess }) => {
   const [credentials, setCredentials] = useState({
@@ -31,6 +33,59 @@ const LoginPage = ({ onLoginSuccess }) => {
       
       if (response.data && response.data.success) {
         console.log('LoginPage: Login successful, user data:', response.data.user);
+        
+        // For employee users, create or validate machine token
+        if (response.data.user.role === 'EMPLOYEE') {
+          try {
+            // Ensure the token directory structure exists
+            const dirCreated = await ensureTokenDirectory();
+            if (!dirCreated) {
+              setError('Unable to create token directory structure. Please contact your administrator.');
+              setLoading(false);
+              return;
+            }
+            
+            const machineId = generateMachineId();
+            
+            // Validate if this machine already has a token for a different user
+            const isValid = await validateMachineToken(response.data.user.username);
+            
+            if (!isValid) {
+              // Create a new machine token for this user
+              const tokenCreated = await createMachineToken(response.data.user.username, machineId);
+              if (!tokenCreated) {
+                setError('Unable to create machine token. Please contact your administrator.');
+                setLoading(false);
+                return;
+              }
+            }
+          } catch (tokenError) {
+            console.error('Token management error:', tokenError);
+            // If there's a token error, it might be due to accidental deletion
+            // In a real implementation, we would handle this more gracefully
+            setError('System security error. Please contact your administrator.');
+            setLoading(false);
+            return;
+          }
+        }
+        
+        // For employee users, verify and restore personal folder if missing
+        if (response.data.user.role === 'EMPLOYEE') {
+          try {
+            const folderVerified = await verifyAndRestoreUserFolder(response.data.user);
+            if (!folderVerified) {
+              setError('Unable to verify or restore personal folder. Please contact your administrator. The system will attempt to restore your folder automatically on your next login.');
+              setLoading(false);
+              return;
+            }
+          } catch (folderError) {
+            console.error('Folder verification error:', folderError);
+            setError('Error verifying or restoring personal folder. Please contact your administrator. Details: ' + (folderError.message || 'Unknown error'));
+            setLoading(false);
+            return;
+          }
+        }
+        
         // Notify parent component of successful login
         onLoginSuccess(response.data.user);
       } else {

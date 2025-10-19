@@ -67,4 +67,8 @@ echo ========================================
 echo.
 echo You can now safely run the development servers
 echo.
+echo Security Note: DSS directory protections have been relaxed.
+echo If you need to manage the DSS directory, you can do so now.
+echo When restarting servers, normal protections will be reapplied.
+echo.
 pause

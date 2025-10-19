@@ -1,0 +1,143 @@
+{
+  "timestamp": "2025-10-19T18:15:06.634582",
+  "folders": [
+    {
+      "id": 2,
+      "name": "Publication Documents",
+      "parent_folder_id": null,
+      "owner_id": 1,
+      "owner_username": "sysadmins",
+      "owner_department": "Publication",
+      "created_at": "2025-10-09T16:13:05.196980+00:00",
+      "updated_at": "2025-10-09T16:13:05.196980+00:00",
+      "is_active": true,
+      "path": "/Publication Documents"
+    },
+    {
+      "id": 5,
+      "name": "Marketing Materials",
+      "parent_folder_id": 2,
+      "owner_id": 3,
+      "owner_username": "depthd",
+      "owner_department": "Finance",
+      "created_at": "2025-10-09T16:13:05.205173+00:00",
+      "updated_at": "2025-10-09T16:13:05.205173+00:00",
+      "is_active": true,
+      "path": "/Publication Documents/Marketing Materials"
+    },
+    {
+      "id": 6,
+      "name": "Press Releases",
+      "parent_folder_id": 2,
+      "owner_id": 3,
+      "owner_username": "depthd",
+      "owner_department": "Finance",
+      "created_at": "2025-10-09T16:13:05.208181+00:00",
+      "updated_at": "2025-10-09T16:13:05.208181+00:00",
+      "is_active": true,
+      "path": "/Publication Documents/Press Releases"
+    },
+    {
+      "id": 1,
+      "name": "Finance Documents",
+      "parent_folder_id": null,
+      "owner_id": 3,
+      "owner_username": "depthd",
+      "owner_department": "Finance",
+      "created_at": "2025-10-09T16:13:05.193285+00:00",
+      "updated_at": "2025-10-09T16:13:05.193285+00:00",
+      "is_active": true,
+      "path": "/Finance Documents"
+    },
+    {
+      "id": 3,
+      "name": "Financial Reports",
+      "parent_folder_id": 1,
+      "owner_id": 3,
+      "owner_username": "depthd",
+      "owner_department": "Finance",
+      "created_at": "2025-10-09T16:13:05.199980+00:00",
+      "updated_at": "2025-10-09T16:13:05.199980+00:00",
+      "is_active": true,
+      "path": "/Finance Documents/Financial Reports"
+    },
+    {
+      "id": 4,
+      "name": "Vendor Contracts",
+      "parent_folder_id": 1,
+      "owner_id": 3,
+      "owner_username": "depthd",
+      "owner_department": "Finance",
+      "created_at": "2025-10-09T16:13:05.202172+00:00",
+      "updated_at": "2025-10-09T16:13:05.202172+00:00",
+      "is_active": true,
+      "path": "/Finance Documents/Vendor Contracts"
+    },
+    {
+      "id": 7,
+      "name": "emponly's Documents",
+      "parent_folder_id": 2,
+      "owner_id": 4,
+      "owner_username": "emponly",
+      "owner_department": "Publication",
+      "created_at": "2025-10-17T06:50:19.133431+00:00",
+      "updated_at": "2025-10-19T05:01:01.814735+00:00",
+      "is_active": true,
+      "path": "/Publication Documents/emponly's Documents"
+    },
+    {
+      "id": 10,
+      "name": "Work Projects",
+      "parent_folder_id": 7,
+      "owner_id": 4,
+      "owner_username": "emponly",
+      "owner_department": "Publication",
+      "created_at": "2025-10-19T05:03:34.255696+00:00",
+      "updated_at": "2025-10-19T05:03:34.255696+00:00",
+      "is_active": true,
+      "path": "/Publication Documents/emponly's Documents/Work Projects"
+    }
+  ],
+  "users": [
+    {
+      "id": 2,
+      "username": "seniordepthd",
+      "role": "SENIOR_DEPT_HEAD",
+      "department": "Finance",
+      "first_name": "Senior",
+      "last_name": "Department Head",
+      "email": "senior.dept.head@documentsolutions.com",
+      "is_active": true
+    },
+    {
+      "id": 3,
+      "username": "depthd",
+      "role": "DEPT_HEAD",
+      "department": "Finance",
+      "first_name": "Department",
+      "last_name": "Head",
+      "email": "dept.head@documentsolutions.com",
+      "is_active": true
+    },
+    {
+      "id": 1,
+      "username": "sysadmins",
+      "role": "ADMIN",
+      "department": "Publication",
+      "first_name": "System",
+      "last_name": "Administrator",
+      "email": "sysadmin@documentsolutions.com",
+      "is_active": true
+    },
+    {
+      "id": 4,
+      "username": "emponly",
+      "role": "EMPLOYEE",
+      "department": "Publication",
+      "first_name": "Regular",
+      "last_name": "Employee",
+      "email": "employee@documentsolutions.com",
+      "is_active": true
+    }
+  ]
+}

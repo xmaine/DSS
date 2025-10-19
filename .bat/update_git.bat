@@ -16,6 +16,28 @@ echo Checking current git status...
 git status
 echo.
 
+REM Backup DSS directory before committing changes
+echo Backing up DSS directory...
+if exist "C:\Users\Default\AppData\Local\DSS" (
+    echo DSS directory found. Creating backup...
+    REM Create backup directory if it doesn't exist
+    if not exist "D:\DSS_Backup" (
+        mkdir "D:\DSS_Backup"
+    )
+    
+    REM Copy DSS directory to backup location
+    xcopy "C:\Users\Default\AppData\Local\DSS" "D:\DSS_Backup\DSS_Backup_%date:~-4%-%date:~4,2%-%date:~7,2%_%time:~0,2%-%time:~3,2%-%time:~6,2%" /E /I /H /Y >nul
+    
+    if !errorlevel! equ 0 (
+        echo DSS directory backed up successfully.
+    ) else (
+        echo WARNING: Failed to backup DSS directory.
+    )
+) else (
+    echo DSS directory not found. Skipping backup.
+)
+echo.
+
 echo Adding all changes to git...
 git add .
 echo.

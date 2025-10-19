@@ -426,6 +426,11 @@ echo    - Close the Django Backend Server window
 echo    - Close the React Frontend Server window
 echo    - Or run: stop_all_servers.bat
 echo.
+echo 4. SECURITY NOTE:
+echo    - While servers are running, the DSS directory is protected from deletion
+echo    - Run protect_dss_while_running.bat to verify protections are active
+echo    - Stop servers before attempting to modify the DSS directory structure
+echo.
 echo 4. TO ACCESS YOUR APPLICATION:
 echo    - Backend API: http://127.0.0.1:%BACKEND_PORT%
 echo    - Frontend App: http://127.0.0.1:%FRONTEND_PORT%/
