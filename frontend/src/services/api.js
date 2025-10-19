@@ -124,12 +124,12 @@ export const getFolder = (id) => api.get(`/folders/${id}/`);
 export const createFolder = (folderData) => api.post('/folders/', folderData);
 export const updateFolder = (id, folderData) => api.put(`/folders/${id}/`, folderData);
 export const deleteFolder = (id) => api.delete(`/folders/${id}/`);
+export const shareFolder = (id, shareData) => api.post(`/folders/${id}/share/`, shareData);
+
+// Shared Items
+export const getSharedWithMe = () => api.get('/shared-items/shared_with_me/');
+export const getSharedByMe = () => api.get('/shared-items/shared_by_me/');
 
 // Workflow Management (Non-admin functions for regular users)
-export const getWorkflows = () => api.get('/workflows/');
-export const getWorkflow = (id) => api.get(`/workflows/${id}/`);
-export const createWorkflow = (workflowData) => api.post('/workflows/', workflowData);
-export const updateWorkflow = (id, workflowData) => api.put(`/workflows/${id}/`, workflowData);
-export const deleteWorkflow = (id) => api.delete(`/workflows/${id}/`);
 
 export default api;

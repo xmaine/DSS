@@ -125,21 +125,23 @@ class Annotation(models.Model):
         return f"Annotation by {self.user.username} on {self.document_version.document.name}"
 
 class SharedItem(models.Model):
-    """Model representing a shared document or folder."""
+    """Model representing a shared document or folder.
+    
+    This model is specifically for explicit, ad-hoc sharing instances by a user.
+    It records when one user shares an item, and to whom.
+    Crucially, SharedItem creates or modifies guardian permissions rather than 
+    being the sole source of truth for access.
+    """
     
     document = models.ForeignKey(Document, on_delete=models.CASCADE, null=True, blank=True)
     folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, blank=True)
     shared_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shared_items')
     shared_with_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='received_shares')
     shared_with_group = models.ForeignKey('auth.Group', on_delete=models.CASCADE, null=True, blank=True)  # Django's built-in Group model
-    PERMISSION_LEVELS = [
-        ('VIEW', 'VIEW'),
-        ('EDIT', 'EDIT'),
-        ('VIEW_EDIT', 'VIEW_EDIT'),
-    ]
-    permission_level = models.CharField(max_length=20, choices=PERMISSION_LEVELS)
+    permission_codes = models.JSONField(default=list, blank=True)  # Array of permission codes (e.g., ['view', 'change', 'delete_document'])
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)  # For revoking shares without deleting the record
     
     def clean(self):
         # Ensure either document or folder is set, not both

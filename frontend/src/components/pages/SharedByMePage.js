@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getSharedWithMe } from '../../services/api';
+import { getSharedByMe } from '../../services/api';
 
-const SharedWithMePage = () => {
+const SharedByMePage = () => {
   const [sharedItems, setSharedItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -10,8 +10,8 @@ const SharedWithMePage = () => {
     const fetchSharedItems = async () => {
       try {
         setLoading(true);
-        // Fetch items shared with the current user
-        const response = await getSharedWithMe();
+        // Fetch items shared by the current user
+        const response = await getSharedByMe();
         
         // Process shared items to match the expected format
         const processedItems = response.data.map(item => ({
@@ -19,7 +19,7 @@ const SharedWithMePage = () => {
           created: new Date(item.created_at).toLocaleDateString(),
           title: item.name,
           type: item.type,
-          sharedBy: item.shared_by || 'Unknown',
+          sharedWith: item.shared_with || 'Unknown',
           permission: item.permission_codes ? item.permission_codes.join(', ') : 'VIEW'
         }));
         
@@ -67,7 +67,7 @@ const SharedWithMePage = () => {
             <option>Folders</option>
           </select>
           <button className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700">
-            Request Access
+            Share Item
           </button>
         </div>
       </div>
@@ -75,7 +75,7 @@ const SharedWithMePage = () => {
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <h3 className="font-medium text-gray-800 mb-2">About Shared Items</h3>
         <p className="text-sm text-gray-600">
-          These are documents and folders that other users have shared with you. You can view, download, and in some cases edit these items based on the permissions granted by the sharer.
+          These are documents and folders that you have shared with other users. You can manage sharing permissions and revoke access if needed.
         </p>
       </div>
       
@@ -85,7 +85,7 @@ const SharedWithMePage = () => {
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shared By</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shared With</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Permission</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Shared</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -97,15 +97,18 @@ const SharedWithMePage = () => {
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.title}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.type}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.sharedBy}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.sharedWith}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.permission}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.created}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button 
                       onClick={() => handleItemClick(item)}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-600 hover:text-blue-900 mr-3"
                     >
                       View
+                    </button>
+                    <button className="text-red-600 hover:text-red-900">
+                      Revoke
                     </button>
                   </td>
                 </tr>
@@ -113,7 +116,7 @@ const SharedWithMePage = () => {
             ) : (
               <tr>
                 <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                  No items shared with you yet.
+                  No items shared yet.
                 </td>
               </tr>
             )}
@@ -124,4 +127,4 @@ const SharedWithMePage = () => {
   );
 };
 
-export default SharedWithMePage;
+export default SharedByMePage;

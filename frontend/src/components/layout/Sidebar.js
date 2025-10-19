@@ -14,6 +14,7 @@ import {
   NotificationIcon,
   FolderIcon,
   ShareIcon,
+  ShareByMeIcon,
   StarIcon,
   HeartIcon,
   ChevronRightIcon,
@@ -99,6 +100,7 @@ const getIcon = (iconName) => {
     case 'notification': return <NotificationIcon className="w-5 h-5" />;
     case 'folder': return <FolderIcon className="w-5 h-5" />;
     case 'share': return <ShareIcon className="w-5 h-5" />;
+    case 'share-by-me': return <ShareByMeIcon className="w-5 h-5" />;
     case 'star': return <StarIcon className="w-5 h-5" />;
     case 'heart': return <HeartIcon className="w-5 h-5" />;
     case 'upload': return <UploadIcon className="w-5 h-5" />;
@@ -166,7 +168,8 @@ const sidebarConfig = {
       {
         name: 'Shared',
         items: [
-          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' }
+          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' },
+          { id: 'shared-by-me', label: 'Shared By Me', icon: 'share-by-me' }
         ]
       }
     ]
@@ -213,7 +216,8 @@ const sidebarConfig = {
       {
         name: 'Shared',
         items: [
-          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' }
+          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' },
+          { id: 'shared-by-me', label: 'Shared By Me', icon: 'share-by-me' }
         ]
       }
     ]
@@ -254,7 +258,8 @@ const sidebarConfig = {
       {
         name: 'Shared',
         items: [
-          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' }
+          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' },
+          { id: 'shared-by-me', label: 'Shared By Me', icon: 'share-by-me' }
         ]
       }
     ]
@@ -283,7 +288,8 @@ const sidebarConfig = {
       {
         name: 'Shared',
         items: [
-          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' }
+          { id: 'shared-with-me', label: 'Shared With Me', icon: 'share' },
+          { id: 'shared-by-me', label: 'Shared By Me', icon: 'share-by-me' }
         ]
       },
       {

@@ -29,7 +29,8 @@ router.register(r'documents', document_views.DocumentViewSet)
 router.register(r'tags', document_views.TagViewSet)
 router.register(r'correspondents', document_views.CorrespondentViewSet)
 router.register(r'document_types', document_views.DocumentTypeViewSet)
-router.register(r'folders', document_views.FolderViewSet, basename='folder')  # Added basename parameter
+router.register(r'folders', document_views.FolderViewSet, basename='folder')
+router.register(r'shared-items', document_views.SharedItemViewSet, basename='shareditem')  # Added basename parameter
 router.register(r'workflows', processing_views.WorkflowTemplateViewSet)
 router.register(r'workflow_steps', processing_views.WorkflowStepViewSet)
 

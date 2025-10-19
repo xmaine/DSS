@@ -6,7 +6,7 @@ const Icon = ({ path, className = "w-6 h-6" }) => (
   </svg>
 );
 
-export const DashboardIcon = ({ className = "w-6 h-6" }) => <Icon path="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" className={className} />;
+export const DashboardIcon = ({ className = "w-6 h-6" }) => <Icon path="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z" className={className} />;
 export const DocumentIcon = ({ className = "w-6 h-6" }) => <Icon path="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" className={className} />;
 export const InboxIcon = ({ className = "w-6 h-6" }) => <Icon path="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V7l7 4 7-4v12zM12 10L5 6h14l-7 4z" className={className} />;
 export const ClockIcon = ({ className = "w-6 h-6" }) => <Icon path="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" className={className} />;
@@ -22,6 +22,10 @@ export const BackupIcon = ({ className = "w-6 h-6" }) => <Icon path="M19.35 10.0
 export const NotificationIcon = ({ className = "w-6 h-6" }) => <Icon path="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" className={className} />;
 export const FolderIcon = ({ className = "w-6 h-6" }) => <Icon path="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" className={className} />;
 export const ShareIcon = ({ className = "w-6 h-6" }) => <Icon path="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z" className={className} />;
+
+// New icon for Shared By Me - a variation of the ShareIcon with a different orientation
+export const ShareByMeIcon = ({ className = "w-6 h-6" }) => <Icon path="M6 7.92c.76 0 1.44-.3 1.96-.77L15.09 11.3c-.05.23-.09.46-.09.7s.04.47.09.7L8.04 16.81c-.54-.5-1.25-.81-2.04-.81-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3c0-.24-.04-.47-.09-.7L15.96 14.19c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3c-.79 0-1.5.31-2.04.81L8.84 5.65c.05-.21.08-.43.08-.65 0-1.61-1.31-2.92-2.92-2.92-1.61 0-2.92 1.31-2.92 2.92s1.31 2.92 2.92 2.92z" className={className} />;
+
 export const StarIcon = ({ className = "w-6 h-6" }) => <Icon path="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" className={className} />;
 export const HeartIcon = ({ className = "w-6 h-6" }) => <Icon path="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" className={className} />;
 export const UploadIcon = ({ className = "w-6 h-6" }) => <Icon path="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z" className={className} />;

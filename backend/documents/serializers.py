@@ -80,7 +80,7 @@ class SharedItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = SharedItem
         fields = ['id', 'document', 'folder', 'shared_by', 'shared_with_user', 'shared_with_group', 
-                  'permission_level', 'created_at', 'expires_at']
+                  'permission_codes', 'created_at', 'expires_at', 'is_active']
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:

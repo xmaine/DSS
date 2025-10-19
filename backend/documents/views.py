@@ -5,7 +5,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.db.models import Q
 from .models import Document, Tag, Correspondent, DocumentType, SharedItem, DocumentRating, Annotation, Folder
 from users.models import CustomUser
-from .serializers import DocumentSerializer, TagSerializer, CorrespondentSerializer, DocumentTypeSerializer, FolderSerializer
+from .serializers import DocumentSerializer, TagSerializer, CorrespondentSerializer, DocumentTypeSerializer, FolderSerializer, SharedItemSerializer
 from .search import DocumentSearchService
 from .health_check import SystemHealthCheckService
 from .validation.models import DocumentCreate, DocumentUpdate, TagCreate, TagUpdate
@@ -122,7 +122,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
                 document=document,
                 shared_by=request.user if request.user.is_authenticated else None,
                 shared_with_user=None,  # Would be set based on request data
-                permission_level='VIEW',
+                permission_codes=['view'],
                 is_active=True
             )
             
@@ -306,3 +306,143 @@ class FolderViewSet(viewsets.ModelViewSet):
         ).distinct()
         
         return queryset
+    
+    @action(detail=True, methods=['post'])
+    def share(self, request, pk=None):
+        """Share a folder with another user"""
+        try:
+            folder = self.get_object()
+            
+            # Check if the current user owns the folder
+            if folder.owner != request.user:
+                return Response(
+                    {'error': 'You do not have permission to share this folder'}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Get sharing parameters from request data
+            shared_with_user_id = request.data.get('shared_with_user')
+            permission_codes = request.data.get('permission_codes', ['view'])
+            
+            if not shared_with_user_id:
+                return Response(
+                    {'error': 'shared_with_user is required'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Get the user to share with
+            try:
+                shared_with_user = CustomUser.objects.get(id=shared_with_user_id)
+            except CustomUser.DoesNotExist:
+                return Response(
+                    {'error': 'User not found'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Create or update the shared item
+            shared_item, created = SharedItem.objects.get_or_create(
+                folder=folder,
+                shared_by=request.user,
+                shared_with_user=shared_with_user,
+                defaults={
+                    'permission_codes': permission_codes,
+                    'is_active': True
+                }
+            )
+            
+            if not created:
+                # Update existing share
+                shared_item.permission_codes = permission_codes
+                shared_item.is_active = True
+                shared_item.save()
+            
+            # Return success response
+            return Response({
+                'message': f'Folder shared successfully with {shared_with_user.username}',
+                'shared_item_id': shared_item.id
+            }, status=status.HTTP_201_CREATED)
+            
+        except Folder.DoesNotExist:
+            return Response({'error': 'Folder not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class SharedItemViewSet(viewsets.ModelViewSet):
+    queryset = SharedItem.objects.all()
+    serializer_class = SharedItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @action(detail=False, methods=['get'])
+    def shared_with_me(self, request):
+        """Get items shared with the current user"""
+        # Filter shared items where the current user is the recipient and the share is active
+        shared_items = SharedItem.objects.filter(
+            shared_with_user=request.user,
+            is_active=True
+        ).select_related('document', 'folder', 'shared_by')
+        
+        # Process the shared items to return a consistent format
+        result = []
+        for item in shared_items:
+            if item.document:
+                result.append({
+                    'id': item.id,
+                    'type': 'document',
+                    'name': item.document.name,
+                    'shared_by': item.shared_by.username if item.shared_by else 'Unknown',
+                    'permission_codes': item.permission_codes if item.permission_codes else ['view'],
+                    'permission_level': ', '.join(item.permission_codes) if item.permission_codes else 'VIEW',
+                    'created_at': item.created_at,
+                    'item_id': item.document.id
+                })
+            elif item.folder:
+                result.append({
+                    'id': item.id,
+                    'type': 'folder',
+                    'name': item.folder.name,
+                    'shared_by': item.shared_by.username if item.shared_by else 'Unknown',
+                    'permission_codes': item.permission_codes if item.permission_codes else ['view'],
+                    'permission_level': ', '.join(item.permission_codes) if item.permission_codes else 'VIEW',
+                    'created_at': item.created_at,
+                    'item_id': item.folder.id
+                })
+        
+        return Response(result)
+    
+    @action(detail=False, methods=['get'])
+    def shared_by_me(self, request):
+        """Get items shared by the current user"""
+        # Filter shared items where the current user is the sharer and the share is active
+        shared_items = SharedItem.objects.filter(
+            shared_by=request.user,
+            is_active=True
+        ).select_related('document', 'folder', 'shared_with_user')
+        
+        # Process the shared items to return a consistent format
+        result = []
+        for item in shared_items:
+            if item.document:
+                result.append({
+                    'id': item.id,
+                    'type': 'document',
+                    'name': item.document.name,
+                    'shared_with': item.shared_with_user.username if item.shared_with_user else 'Group',
+                    'permission_codes': item.permission_codes if item.permission_codes else ['view'],
+                    'permission_level': ', '.join(item.permission_codes) if item.permission_codes else 'VIEW',
+                    'created_at': item.created_at,
+                    'item_id': item.document.id
+                })
+            elif item.folder:
+                result.append({
+                    'id': item.id,
+                    'type': 'folder',
+                    'name': item.folder.name,
+                    'shared_with': item.shared_with_user.username if item.shared_with_user else 'Group',
+                    'permission_codes': item.permission_codes if item.permission_codes else ['view'],
+                    'permission_level': ', '.join(item.permission_codes) if item.permission_codes else 'VIEW',
+                    'created_at': item.created_at,
+                    'item_id': item.folder.id
+                })
+        
+        return Response(result)

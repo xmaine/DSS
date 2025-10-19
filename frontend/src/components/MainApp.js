@@ -15,6 +15,7 @@ import MachineTokens from './admin/MachineTokens';
 import SettingsPage from './pages/SettingsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import SharedWithMePage from './pages/SharedWithMePage';
+import SharedByMePage from './pages/SharedByMePage';
 import ApiDiagnostics from './ApiDiagnostics';
 import UploadPage from './pages/UploadPage';
 import MyDocumentsPage from './pages/MyDocumentsPage';
@@ -128,6 +129,9 @@ const MainApp = ({ onLogout, user }) => {
       
       case 'shared-with-me':
         return <SharedWithMePage />;
+      
+      case 'shared-by-me':
+        return <SharedByMePage />;
       
       case 'shared-folders':
       case 'all-folders':
@@ -345,6 +349,7 @@ const MainApp = ({ onLogout, user }) => {
                 {activeSection === 'dashboard' && 'Home / Dashboard'}
                 {activeSection === 'my-documents' && 'Documents'}
                 {activeSection === 'shared-with-me' && 'Shared With Me'}
+                {activeSection === 'shared-by-me' && 'Shared By Me'}
                 {activeSection === 'recent-documents' && 'Recent Documents'}
                 {activeSection === 'search' && 'Search'}
                 {activeSection === 'document-library' && 'Document Library'}

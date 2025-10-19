@@ -1,4 +1,4 @@
-### Precise Database Structure for DOCUMENT SOLUTIONS (PostgreSQL)
+### Precise Database Structure for DOCUMENT SOLUTIONS (PostgreSQL) - **Updated with Sharing Module**
 
 **Schema Design Principles:**
 *   **Normalization:** Minimize data redundancy.
@@ -6,7 +6,7 @@
 *   **Indexing:** Crucial for search and retrieval performance.
 *   **Data Types:** Appropriate types for efficiency and data integrity.
 *   **Versioning:** Designed to track document changes effectively.
-*   **Permissions:** Granular, object-level permissions.
+*   **Permissions:** Granular, object-level permissions, **leveraging `django-guardian` for primary access control and `dms_shareditem` for explicit ad-hoc sharing.**
 
 ---
 
@@ -26,8 +26,23 @@ This table will store all user information and their roles.
 *   **`is_active`**: `BOOLEAN` (Default: `TRUE`) - Django built-in
 *   **`date_joined`**: `TIMESTAMP WITH TIME ZONE` (Default: `NOW()`) - Django built-in
 *   **`role`**: `VARCHAR(20)` - Choices: `('ADMIN', 'SENIOR_DEPT_HEAD', 'DEPT_HEAD', 'EMPLOYEE')`
-*   **`department`**: `VARCHAR(100)` (NULLABLE) - *Could be FK to a `departments` table for larger orgs*
+*   **`department_id`**: `BIGINT` (ForeignKey to `dms_department.id`, NULLABLE) - *Changed to FK for better organization.*
 *   **`mfa_enabled`**: `BOOLEAN` (Default: `FALSE`) - For 2FA status
+
+---
+
+#### **NEW**: `dms_department` Table
+
+To properly manage departments and link users to them, as hinted in `users_customuser` and mentioned in `QPLAN.md`.
+
+*   **`id`**: `BIGSERIAL` (Primary Key)
+*   **`name`**: `VARCHAR(100)` (UNIQUE)
+*   **`description`**: `TEXT` (NULLABLE)
+*   **`parent_department_id`**: `BIGINT` (ForeignKey to `dms_department.id`, NULLABLE for top-level departments)
+*   **`head_id`**: `BIGINT` (ForeignKey to `users_customuser.id`, NULLABLE) - The designated Department Head or Senior Department Head for this department.
+*   **`created_at`**: `TIMESTAMP WITH TIME ZONE` (Default: `NOW()`)
+*   **`updated_at`**: `TIMESTAMP WITH TIME ZONE` (Default: `NOW()`)
+*   **`is_active`**: `BOOLEAN` (Default: `TRUE`) - For soft deletion.
 
 ---
 
@@ -39,6 +54,7 @@ Represents the hierarchical structure of the document repository.
 *   **`name`**: `VARCHAR(255)`
 *   **`parent_folder_id`**: `BIGINT` (ForeignKey to `dms_folder.id`, NULLABLE for root folders)
 *   **`owner_id`**: `BIGINT` (ForeignKey to `users_customuser.id`) - The user primarily responsible for this folder.
+*   **`department_id`**: `BIGINT` (ForeignKey to `dms_department.id`, NULLABLE) - For departmental top-level folders or if folders inherently belong to a department.
 *   **`created_at`**: `TIMESTAMP WITH TIME ZONE` (Default: `NOW()`)
 *   **`updated_at`**: `TIMESTAMP WITH TIME ZONE` (Default: `NOW()`)
 *   **`is_active`**: `BOOLEAN` (Default: `TRUE`) - For soft deletion.
@@ -154,21 +170,25 @@ For comments or notes directly on a document.
 
 ---
 
-#### 11. `dms_shareditem` Table
+#### **UPDATED**: `dms_shareditem` Table
 
-Manages sharing of documents or folders between users/groups.
+This table is now specifically for **explicit, ad-hoc sharing instances** by a user. It records when one user (or a system process acting on a user's behalf) *shares* an item, and to whom.
+**Crucially, `dms_shareditem` creates or modifies `guardian` permissions rather than being the sole source of truth for access.**
 
 *   **`id`**: `BIGSERIAL` (Primary Key)
-*   **`document_id`**: `BIGINT` (ForeignKey to `dms_document.id`, NULLABLE)
-*   **`folder_id`**: `BIGINT` (ForeignKey to `dms_folder.id`, NULLABLE)
-*   **`shared_by_id`**: `BIGINT` (ForeignKey to `users_customuser.id`)
-*   **`shared_with_user_id`**: `BIGINT` (ForeignKey to `users_customuser.id`, NULLABLE)
-*   **`shared_with_group_id`**: `BIGINT` (ForeignKey to `auth_group.id`, NULLABLE) - Assuming Django's built-in `Group` model.
-*   **`permission_level`**: `VARCHAR(20)` - Choices: `('VIEW', 'EDIT', 'VIEW_EDIT')`
+*   **`document_id`**: `BIGINT` (ForeignKey to `dms_document.id`, NULLABLE) - The document being shared.
+*   **`folder_id`**: `BIGINT` (ForeignKey to `dms_folder.id`, NULLABLE) - The folder being shared.
+*   **`shared_by_id`**: `BIGINT` (ForeignKey to `users_customuser.id`) - The user who initiated the sharing.
+*   **`shared_with_user_id`**: `BIGINT` (ForeignKey to `users_customuser.id`, NULLABLE) - The specific user with whom the item is shared.
+*   **`shared_with_group_id`**: `BIGINT` (ForeignKey to `auth_group.id`, NULLABLE) - The group with which the item is shared.
+*   **`permission_codes`**: `ARRAY TEXT` (e.g., `['view', 'change', 'delete_document']`) - The specific `guardian` permission codes granted by this share. This replaces a single `permission_level` to allow fine-grained control.
 *   **`created_at`**: `TIMESTAMP WITH TIME ZONE` (Default: `NOW()`)
-*   **`expires_at`**: `TIMESTAMP WITH TIME ZONE` (NULLABLE)
+*   **`expires_at`**: `TIMESTAMP WITH TIME ZONE` (NULLABLE) - When this specific share becomes inactive.
+*   **`is_active`**: `BOOLEAN` (Default: `TRUE`) - For revoking shares without deleting the record.
 *   **`CONSTRAINT chk_one_item`**: Ensures either `document_id` OR `folder_id` is set, not both.
 *   **`CONSTRAINT chk_one_recipient`**: Ensures either `shared_with_user_id` OR `shared_with_group_id` is set, not both.
+*   **Purpose for "Shared by Me"**: A user can query this table for `WHERE shared_by_id = current_user_id` to see what they have shared.
+*   **Purpose for "Shared With Me"**: A user can query this table for `WHERE shared_with_user_id = current_user_id OR shared_with_group_id IN (user_groups)` to see what has been explicitly shared with them.
 
 ---
 
@@ -253,10 +273,10 @@ For comprehensive system-wide auditing and security.
 *   **`id`**: `BIGSERIAL` (Primary Key)
 *   **`timestamp`**: `TIMESTAMP WITH TIME ZONE` (Default: `NOW()`)
 *   **`user_id`**: `BIGINT` (ForeignKey to `users_customuser.id`, NULLABLE for system events)
-*   **`action`**: `VARCHAR(255)` (e.g., "DOCUMENT_UPLOADED", "USER_LOGIN_SUCCESS", "PERMISSION_CHANGED")
-*   **`object_type`**: `VARCHAR(100)` (e.g., "Document", "Folder", "User")
-*   **`object_id`**: `BIGINT` (NULLABLE) - ID of the object affected.
-*   **`details`**: `JSONB` (NULLABLE) - JSON field for additional context (e.g., "old_value": "x", "new_value": "y").
+*   **`action`**: `VARCHAR(255)` (e.g., "DOCUMENT_UPLOADED", "USER_LOGIN_SUCCESS", "PERMISSION_CHANGED", "DOCUMENT_SHARED")
+*   **`object_type`**: `VARCHAR(100)` (e.g., "Document", "Folder", "User", "Share")
+*   **`object_id`**: `BIGINT` (NULLABLE) - ID of the object affected (e.g., `dms_document.id`, `dms_shareditem.id`).
+*   **`details`**: `JSONB` (NULLABLE) - JSON field for additional context (e.g., "old_value": "x", "new_value": "y", "shared_with": "user_id").
 *   **`ip_address`**: `INET` (NULLABLE)
 *   **`is_sensitive`**: `BOOLEAN` (Default: `FALSE`) - Flag for security-critical events.
 
@@ -264,13 +284,31 @@ For comprehensive system-wide auditing and security.
 
 #### Permissions with `django-guardian` (Proposed)
 
-Instead of complex custom permission tables, `django-guardian` is highly recommended. It manages permissions at the object level, which is what we need for folders and documents. It creates its own tables:
-*   `guardian_userobjectpermission`
-*   `guardian_groupobjectpermission`
-*   `guardian_permission`
+This is the central pillar of our access control. `django-guardian` will manage direct object-level permissions.
+**How `dms_shareditem` and `guardian` interact:**
 
-These tables would link directly to `dms_document` and `dms_folder` instances, allowing granular control for `view`, `edit`, `delete`, `lock`, `share` permissions for specific users or groups on individual documents or folders.
+1.  **Implicit Permissions:** Role-based access and departmental hierarchies (e.g., a Department Head implicitly has access to all documents in their department's folders) should be handled by `guardian`'s group permissions or custom backend logic that *grants* `guardian` permissions. For instance, when a user is assigned to a department, a background process (or signals in Django) would grant that user (or their role's group) relevant `guardian` permissions (`view_folder`, `view_document`) on the department's top-level folder and its contents.
+2.  **Explicit Sharing:** When a user initiates a share via the UI (which then populates `dms_shareditem`), the backend process associated with creating that `dms_shareditem` record will *also* explicitly grant the specified `guardian` permissions (`permission_codes`) to the `shared_with_user_id` or `shared_with_group_id` for the `document_id` or `folder_id`.
+3.  **Revoking Shares:** When `dms_shareditem.is_active` is set to `FALSE` or `expires_at` is passed, the corresponding `guardian` permissions are revoked.
+4.  **Ownership:** The `owner_id` (for `dms_folder`) and `uploader_id` (for `dms_document`) inherently get full `guardian` permissions (`view`, `change`, `delete`).
+
+`django-guardian` creates its own tables, which are crucial for the system:
+*   `guardian_userobjectpermission`: Links a user, a permission, and a specific object instance (e.g., `user_id` has `view` permission on `document_id=123`).
+*   `guardian_groupobjectpermission`: Links a group, a permission, and a specific object instance (e.g., `group_id` has `edit` permission on `folder_id=456`).
+*   `guardian_permission`: A registry of all available permissions (`view_document`, `change_document`, `delete_document`, `lock_document`, `share_document`, `view_folder`, `change_folder`, `delete_folder`, `add_document_to_folder`, `add_folder_to_folder`, etc.).
 
 ---
 
-This detailed database structure, with considerations for common DMS functionalities and workflow, should provide a solid foundation for DOCUMENT SOLUTIONS. We've accounted for user management, document lifecycle, collaboration, security, and auditability.
+### How "Shared by Me" and "Shared With Me" will be implemented:
+
+**1. "Shared by Me" (Accessed via `dms_shareditem`):**
+*   **Data Source:** Query the `dms_shareditem` table where `shared_by_id = current_user_id`.
+*   **Display:** List the documents/folders the user has shared, with whom, what permissions were granted (`permission_codes`), and the expiry date. This provides the user with an audit trail and management interface for their outgoing shares.
+*   **Management:** Allow the user to revoke (set `is_active=FALSE` and remove `guardian` permission), extend, or modify existing shares they initiated.
+
+**2. "Shared With Me" (Accessed via a combination of `guardian` and `dms_shareditem`):**
+*   **Primary Data Source:** The most direct way to check *effective* "Shared With Me" is through `guardian`'s permission checks. Any document or folder for which the `current_user_id` has *any* `guardian` permission (`view`, `edit`, etc.) and that permission was granted via a `dms_shareditem` record (or explicitly by an admin based on a `dms_shareditem` trigger) would qualify.
+*   **Augmenting `dms_shareditem`:** Querying `dms_shareditem` where `shared_with_user_id = current_user_id` or `shared_with_group_id` includes any group the user belongs to will directly show *explicit* shares.
+*   **Display:** List the documents/folders explicitly shared with the user, who shared them, what permissions they have, and when the share expires. This tab focuses on items that were *specifically granted* to them, not necessarily items they have access to due to their role or departmental affiliation (which are handled by `Documents` view through `guardian`'s role-based access).
+
+This updated structure, with the `dms_department` table and the refined role of `dms_shareditem` in conjunction with `django-guardian`, provides a robust and flexible permission and sharing model aligned with the project's goals.

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FolderIcon, 
   DocumentIcon, 
@@ -9,7 +9,7 @@ import {
   DeleteIcon, 
   ViewIcon 
 } from '../ui/Icons';
-import { getFolders, getDocuments, createFolder } from '../../services/api';
+import { getFolders, getDocuments, createFolder, shareFolder } from '../../services/api';
 import { validateMachineToken } from '../../utils/machineToken';
 
 const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
@@ -23,9 +23,10 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
   const [selectedDocuments, setSelectedDocuments] = useState([]); // For multiple selection
   const [searchQuery, setSearchQuery] = useState('');
   const [showUploadDropdown, setShowUploadDropdown] = useState(false); // For upload dropdown
+  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, folder: null }); // For folder context menu
 
   // Fetch folders and documents from the database
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null); // Clear any previous errors
@@ -109,11 +110,22 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
       setDocuments([]);
       setLoading(false);
     }
-  };
+  }, [user.id]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
+
+  // Set the home folder as selected by default
+  useEffect(() => {
+    if (folders.length > 0 && !selectedFolder) {
+      // Find the home folder (the one with "'s Documents" in the name)
+      const homeFolder = folders.find(folder => folder.name && folder.name.includes("'s Documents"));
+      if (homeFolder) {
+        setSelectedFolder(homeFolder);
+      }
+    }
+  }, [folders, selectedFolder]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -140,6 +152,7 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
   };
 
   const selectFolder = (folder) => {
+    // Allow selection of any folder for navigation/display purposes
     setSelectedFolder(folder);
     // Clear document selection when folder is selected
     setSelectedDocuments([]);
@@ -230,23 +243,25 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
           console.log(`Rendering folder:`, folder);
           const hasChildren = folders.filter(f => f.parent_folder === folder.id).length > 0;
           const isExpanded = expandedFolders.has(folder.id);
-          console.log(`Folder ${folder.id} hasChildren: ${hasChildren}, isExpanded: ${isExpanded}`);
+          const isHomeFolder = folder.name && folder.name.includes("'s Documents");
+          console.log(`Folder ${folder.id} hasChildren: ${hasChildren}, isExpanded: ${isExpanded}, isHomeFolder: ${isHomeFolder}`);
           
           // Show just the username for personal folders instead of "{username}'s Documents"
           let displayName = folder.name;
-          if (folder.name && folder.name.includes("'s Documents")) {
-            // Extract just the username part
+          if (isHomeFolder) {
+            // Extract just the username part and add (Home)
             const match = folder.name.match(/^(.+)'s Documents$/);
             if (match) {
-              displayName = match[1];
+              displayName = `${match[1]} (Home)`;
             }
           }
           
           return (
             <div key={folder.id}>
               <div 
-                className={`flex items-center p-2 hover:bg-gray-100 cursor-pointer ${selectedFolder?.id === folder.id ? 'bg-gray-200' : ''}`}
+                className={`flex items-center p-2 hover:bg-gray-100 cursor-pointer ${selectedFolder?.id === folder.id ? 'bg-gray-200' : ''} ${isHomeFolder ? 'font-semibold' : ''}`}
                 onClick={() => selectFolder(folder)}
+                onContextMenu={(e) => handleFolderRightClick(e, folder)}
               >
                 <button 
                   onClick={(e) => {
@@ -254,9 +269,14 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
                     toggleFolder(folder.id);
                   }}
                   className="mr-2 w-4 flex items-center justify-center"
+                  title="Toggle folder"
                 >
                   {hasChildren ? (
-                    isExpanded ? '-' : '+'
+                    isExpanded ? (
+                      <span className="text-sm font-bold">-</span>
+                    ) : (
+                      <span className="text-sm font-bold">+</span>
+                    )
                   ) : (
                     <span className="inline-block w-4"></span>
                   )}
@@ -424,7 +444,97 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     }
   };
 
-  // Filter documents based on search query and selected folder
+  // Handle right-click on folder to show context menu
+  const handleFolderRightClick = (e, folder) => {
+    e.preventDefault();
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      folder: folder
+    });
+  };
+
+  // Close context menu when clicking elsewhere
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setContextMenu(prev => ({ ...prev, visible: false }));
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
+  // Folder context menu actions
+  const handleRenameFolder = () => {
+    if (!contextMenu.folder) return;
+    
+    const newName = prompt('Enter new folder name:', contextMenu.folder.name);
+    if (newName && newName !== contextMenu.folder.name) {
+      // In a real app, this would call an API to rename the folder
+      console.log(`Renaming folder ${contextMenu.folder.id} to ${newName}`);
+      alert(`Folder renamed to ${newName}`);
+      setContextMenu(prev => ({ ...prev, visible: false }));
+      fetchData(); // Refresh the folder list
+    }
+  };
+
+  const handleCopyFolder = () => {
+    if (!contextMenu.folder) return;
+    
+    // In a real app, this would copy the folder
+    console.log(`Copying folder ${contextMenu.folder.id}`);
+    alert(`Folder copied`);
+    setContextMenu(prev => ({ ...prev, visible: false }));
+  };
+
+  const handleMoveFolder = () => {
+    if (!contextMenu.folder) return;
+    
+    // In a real app, this would move the folder
+    // Move is only applicable within the home directory of the user
+    console.log(`Moving folder ${contextMenu.folder.id}`);
+    alert(`Folder moved`);
+    setContextMenu(prev => ({ ...prev, visible: false }));
+  };
+
+  const handleDeleteFolder = () => {
+    if (!contextMenu.folder) return;
+    
+    // Prevent deletion of home folder
+    if (contextMenu.folder.name && contextMenu.folder.name.includes("'s Documents")) {
+      alert("You cannot delete your home folder.");
+      setContextMenu(prev => ({ ...prev, visible: false }));
+      return;
+    }
+    
+    const confirmDelete = window.confirm(`Are you sure you want to delete folder ${contextMenu.folder.name}?`);
+    if (confirmDelete) {
+      // In a real app, this would call an API to delete the folder
+      console.log(`Deleting folder ${contextMenu.folder.id}`);
+      alert(`Folder deleted`);
+      setContextMenu(prev => ({ ...prev, visible: false }));
+      fetchData(); // Refresh the folder list
+    }
+  };
+
+  const handleShareFolder = async () => {
+    if (!contextMenu.folder) return;
+    
+    try {
+      // In a real app, this would share the folder with specified users
+      console.log(`Sharing folder ${contextMenu.folder.id}`);
+      // Example API call:
+      // await shareFolder(contextMenu.folder.id, { shared_with_user: userId, permission_level: 'VIEW' });
+      alert(`Folder shared successfully`);
+      setContextMenu(prev => ({ ...prev, visible: false }));
+    } catch (error) {
+      console.error('Error sharing folder:', error);
+      alert('Error sharing folder: ' + error.message);
+    }
+  };
   const filteredDocuments = documents.filter(doc => {
     // First, apply search filter
     const matchesSearch = 
@@ -454,10 +564,12 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
           <h3 className="font-semibold text-gray-800">Folders</h3>
           <button 
             onClick={handleCreateFolder}
-            className="flex items-center px-2 py-1 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center w-6 h-6 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+            title="Add Folder"
           >
-            <FolderIcon className="w-4 h-4 mr-1" />
-            Add Folder
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
           </button>
         </div>
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
@@ -677,6 +789,45 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
           )}
         </div>
       </div>
+      
+      {/* Folder Context Menu */}
+      {contextMenu.visible && (
+        <div 
+          className="absolute bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+        >
+          <button 
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={handleRenameFolder}
+          >
+            Rename
+          </button>
+          <button 
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={handleCopyFolder}
+          >
+            Copy
+          </button>
+          <button 
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={handleMoveFolder}
+          >
+            Move
+          </button>
+          <button 
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={handleDeleteFolder}
+          >
+            Delete
+          </button>
+          <button 
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={handleShareFolder}
+          >
+            Share
+          </button>
+        </div>
+      )}
     </div>
   );
 };

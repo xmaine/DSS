@@ -46,8 +46,8 @@ class AnnotationAdmin(admin.ModelAdmin):
 
 @admin.register(SharedItem)
 class SharedItemAdmin(admin.ModelAdmin):
-    list_display = ('shared_by', 'permission_level', 'created_at')
-    list_filter = ('permission_level', 'created_at')
+    list_display = ('shared_by', 'created_at', 'is_active')
+    list_filter = ('is_active', 'created_at')
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
