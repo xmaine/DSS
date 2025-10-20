@@ -1,6 +1,10 @@
-#Tab Navigation
--Implement visual indication of the active tab with blue underlines
--Added hover effects for better user experience
+QFormats
 
-#Enable/Disable
--Implement Toggle Slider
+## UI Components
+
+### Tab Navigation
+- Implement visual indication of the active tab with blue underlines
+- Added hover effects for better user experience
+
+### Enable/Disable
+- Implement Toggle Slider
