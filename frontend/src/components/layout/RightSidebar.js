@@ -383,7 +383,7 @@ const RightSidebar = ({ userRole, isSystemAdmin, activeSection }) => {
       {/* Tab Headers - show single tab for Employee users, multiple tabs for others */}
       <div className="flex border-b border-gray-200">
         <button
-          className={`flex-1 py-2 text-sm font-medium ${
+          className={`py-2 px-4 text-sm font-medium ${
             activeTab === 'properties'
               ? 'text-blue-600 border-b-2 border-blue-600'
               : 'text-gray-500 hover:text-gray-700'
@@ -395,7 +395,7 @@ const RightSidebar = ({ userRole, isSystemAdmin, activeSection }) => {
         {!isEmployee && (
           <>
             <button
-              className={`flex-1 py-2 text-sm font-medium ${
+              className={`py-2 px-4 text-sm font-medium ${
                 activeTab === 'actions'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
@@ -405,7 +405,7 @@ const RightSidebar = ({ userRole, isSystemAdmin, activeSection }) => {
               Actions
             </button>
             <button
-              className={`flex-1 py-2 text-sm font-medium ${
+              className={`py-2 px-4 text-sm font-medium ${
                 activeTab === 'quick-links'
                   ? 'text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-500 hover:text-gray-700'
