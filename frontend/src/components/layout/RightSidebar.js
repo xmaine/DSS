@@ -373,12 +373,14 @@ const RightSidebar = ({ userRole, isSystemAdmin, activeSection }) => {
 
   return (
     <div className="w-64 bg-gray-50 border-l border-gray-200 flex flex-col h-full">
-      {/* Header with title */}
-      <div className="flex items-center justify-between p-2 border-b border-gray-200">
-        <h2 className="text-sm font-semibold text-gray-700">Options</h2>
-      </div>
+      {/* Header with title - only show for non-Employee users */}
+      {!isEmployee && (
+        <div className="flex items-center justify-between p-2 border-b border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-700">Options</h2>
+        </div>
+      )}
 
-      {/* Tab Headers - only show Properties tab for Employee users, all tabs for others */}
+      {/* Tab Headers - show single tab for Employee users, multiple tabs for others */}
       <div className="flex border-b border-gray-200">
         <button
           className={`flex-1 py-2 text-sm font-medium ${
@@ -390,8 +392,6 @@ const RightSidebar = ({ userRole, isSystemAdmin, activeSection }) => {
         >
           Properties
         </button>
-        
-        {/* Only show Actions and Quick Links tabs for non-Employee users */}
         {!isEmployee && (
           <>
             <button
@@ -420,6 +420,7 @@ const RightSidebar = ({ userRole, isSystemAdmin, activeSection }) => {
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-3">
+        {/* Show Properties tab content for all users */}
         {activeTab === 'properties' && (
           <div className="space-y-4">
             {/* Statistics Panel */}
@@ -448,7 +449,7 @@ const RightSidebar = ({ userRole, isSystemAdmin, activeSection }) => {
           </div>
         )}
 
-        {/* Only show Actions and Quick Links content for non-Employee users */}
+        {/* Show other tabs only for non-Employee users */}
         {!isEmployee && (
           <>
             {activeTab === 'actions' && (
