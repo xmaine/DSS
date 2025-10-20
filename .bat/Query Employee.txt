@@ -1,0 +1,4 @@
+for the right sidebar, tabs
+*remove the "Options"
+*remove the Actions Tab and Quick Links
+*only Retain the  Properties tab

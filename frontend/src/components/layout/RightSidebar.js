@@ -14,6 +14,9 @@ import {
 const RightSidebar = ({ userRole, isSystemAdmin, activeSection }) => {
   const [activeTab, setActiveTab] = useState('properties');
 
+  // Check if the user is an Employee
+  const isEmployee = userRole === 'Employee';
+
   // Get content based on active section
   const getContentForSection = () => {
     switch (activeSection) {
@@ -370,48 +373,53 @@ const RightSidebar = ({ userRole, isSystemAdmin, activeSection }) => {
 
   return (
     <div className="w-64 bg-gray-50 border-l border-gray-200 flex flex-col h-full">
-      {/* Header with title */}
-      <div className="flex items-center justify-between p-2 border-b border-gray-200">
-        <h2 className="text-sm font-semibold text-gray-700">Options</h2>
-      </div>
+      {/* Header with title - only show for non-Employee users */}
+      {!isEmployee && (
+        <div className="flex items-center justify-between p-2 border-b border-gray-200">
+          <h2 className="text-sm font-semibold text-gray-700">Options</h2>
+        </div>
+      )}
 
-      {/* Tab Headers */}
-      <div className="flex border-b border-gray-200">
-        <button
-          className={`flex-1 py-2 text-sm font-medium ${
-            activeTab === 'properties'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setActiveTab('properties')}
-        >
-          Properties
-        </button>
-        <button
-          className={`flex-1 py-2 text-sm font-medium ${
-            activeTab === 'actions'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setActiveTab('actions')}
-        >
-          Actions
-        </button>
-        <button
-          className={`flex-1 py-2 text-sm font-medium ${
-            activeTab === 'quick-links'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-          onClick={() => setActiveTab('quick-links')}
-        >
-          Quick Links
-        </button>
-      </div>
+      {/* Tab Headers - only show for non-Employee users */}
+      {!isEmployee && (
+        <div className="flex border-b border-gray-200">
+          <button
+            className={`flex-1 py-2 text-sm font-medium ${
+              activeTab === 'properties'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => setActiveTab('properties')}
+          >
+            Properties
+          </button>
+          <button
+            className={`flex-1 py-2 text-sm font-medium ${
+              activeTab === 'actions'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => setActiveTab('actions')}
+          >
+            Actions
+          </button>
+          <button
+            className={`flex-1 py-2 text-sm font-medium ${
+              activeTab === 'quick-links'
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+            onClick={() => setActiveTab('quick-links')}
+          >
+            Quick Links
+          </button>
+        </div>
+      )}
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto p-3">
-        {activeTab === 'properties' && (
+        {/* For Employee users, only show Properties content */}
+        {isEmployee ? (
           <div className="space-y-4">
             {/* Statistics Panel */}
             <div className="bg-white rounded border border-gray-200 p-3">
@@ -437,40 +445,71 @@ const RightSidebar = ({ userRole, isSystemAdmin, activeSection }) => {
               </div>
             </div>
           </div>
-        )}
+        ) : (
+          /* For non-Employee users, show tabbed content */
+          <>
+            {activeTab === 'properties' && (
+              <div className="space-y-4">
+                {/* Statistics Panel */}
+                <div className="bg-white rounded border border-gray-200 p-3">
+                  <h3 className="font-semibold text-black mb-2">Statistics</h3>
+                  {renderStatistics()}
+                </div>
+                
+                {/* Document Info Panel */}
+                <div className="bg-white p-3 rounded border border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Info</h3>
+                  {renderDocumentInfo()}
+                </div>
+                
+                {/* Tags Panel */}
+                <div className="bg-white p-3 rounded border border-gray-200">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Tags</h3>
+                  <div className="flex flex-wrap gap-1">
+                    {content.tags.map((tag, index) => (
+                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
-        {activeTab === 'actions' && (
-          <div className="bg-white rounded border border-gray-200 p-3">
-            <div className="space-y-2">
-              {content.actions.map((button) => (
-                <button
-                  key={button.id}
-                  className="w-full text-left p-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm flex items-center space-x-2"
-                  onClick={() => handleActionClick(button.id)}
-                >
-                  {button.icon}
-                  <span>{button.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+            {activeTab === 'actions' && (
+              <div className="bg-white rounded border border-gray-200 p-3">
+                <div className="space-y-2">
+                  {content.actions.map((button) => (
+                    <button
+                      key={button.id}
+                      className="w-full text-left p-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm flex items-center space-x-2"
+                      onClick={() => handleActionClick(button.id)}
+                    >
+                      {button.icon}
+                      <span>{button.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {activeTab === 'quick-links' && (
-          <div className="bg-white rounded border border-gray-200 p-3">
-            <div className="space-y-2">
-              {quickLinks.map((link) => (
-                <button
-                  key={link.id}
-                  className="w-full text-left p-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm flex items-center space-x-2"
-                  onClick={() => handleQuickLinkClick(link.id)}
-                >
-                  {link.icon}
-                  <span>{link.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+            {activeTab === 'quick-links' && (
+              <div className="bg-white rounded border border-gray-200 p-3">
+                <div className="space-y-2">
+                  {quickLinks.map((link) => (
+                    <button
+                      key={link.id}
+                      className="w-full text-left p-2 bg-gray-100 hover:bg-gray-200 rounded text-gray-700 text-sm flex items-center space-x-2"
+                      onClick={() => handleQuickLinkClick(link.id)}
+                    >
+                      {link.icon}
+                      <span>{link.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
