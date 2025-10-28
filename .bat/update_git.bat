@@ -12,6 +12,10 @@ echo.
 REM Navigate to the project directory
 cd /d D:\PYTHON\Projects\Django\DSS
 
+echo Pulling latest changes from remote repository...
+git pull origin Qoder
+echo.
+
 echo Checking current git status...
 git status
 echo.
@@ -33,18 +37,43 @@ git diff-index --quiet HEAD || (
     
     git commit -m "Update: Changes committed on %datestamp%"
     
-    echo Pushing changes to remote repository...
+    echo Pushing changes to main remote repository...
     git push origin Qoder
     
     if !errorlevel! equ 0 (
         echo.
         echo ====================================================
-        echo    SUCCESS: Repository updated and pushed to remote!
+        echo    SUCCESS: Repository updated and pushed to main remote!
         echo ====================================================
+        
+        REM Also push to backup repository if it exists
+        echo.
+        echo Checking for backup repository...
+        git remote get-url DSS_Backup >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo Pushing changes to backup repository...
+            git push DSS_Backup Qoder
+            if !errorlevel! equ 0 (
+                echo.
+                echo ====================================================
+                echo    SUCCESS: Repository also pushed to backup!
+                echo ====================================================
+            ) else (
+                echo.
+                echo ====================================================
+                echo    WARNING: Failed to push to backup repository.
+                echo ====================================================
+            )
+        ) else (
+            echo.
+            echo ====================================================
+            echo    INFO: No backup repository configured.
+            echo ====================================================
+        )
     ) else (
         echo.
         echo ====================================================
-        echo    ERROR: Failed to push to remote repository.
+        echo    ERROR: Failed to push to main remote repository.
         echo ====================================================
     )
 ) || (
