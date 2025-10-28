@@ -42,10 +42,19 @@ class DocumentCreate(BaseModel):
     """Pydantic model for creating a document."""
     title: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = Field(None, max_length=1000)
-    file: str = Field(..., min_length=1)
+    file: Optional[str] = Field(None, min_length=1)  # Make file optional for multipart uploads
     original_filename: Optional[str] = Field(None, max_length=255)
     file_size: Optional[int] = Field(None, gt=0)
     mime_type: Optional[str] = Field(None, max_length=100)
+    
+    @validator('file')
+    def validate_file_extension(cls, v):
+        """Validate that the file has a valid extension."""
+        if v is not None:  # Only validate if file is provided
+            valid_extensions = {'.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff'}
+            if not any(v.lower().endswith(ext) for ext in valid_extensions):
+                raise ValueError('File must have a valid extension')
+        return v
 
 class DocumentUpdate(BaseModel):
     """Pydantic model for updating a document."""
@@ -64,6 +73,13 @@ class DocumentSearch(BaseModel):
     document_type: Optional[str] = None
     date_from: Optional[datetime] = None
     date_to: Optional[datetime] = None
+
+    @validator('date_to')
+    def validate_date_range(cls, v, values):
+        """Validate that date_to is after date_from."""
+        if 'date_from' in values and values['date_from'] and v and v < values['date_from']:
+            raise ValueError('date_to must be after date_from')
+        return v
 
 class DocumentPermissionCreate(BaseModel):
     """Pydantic model for creating a document permission."""
@@ -85,19 +101,3 @@ class SharedLinkUpdate(BaseModel):
     """Pydantic model for updating a shared link."""
     expires_at: Optional[datetime] = None
     is_active: Optional[bool] = None
-
-# Validators
-@validator('file')
-def validate_file_extension(cls, v):
-    """Validate that the file has a valid extension."""
-    valid_extensions = {'.pdf', '.doc', '.docx', '.txt', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff'}
-    if not any(v.lower().endswith(ext) for ext in valid_extensions):
-        raise ValueError('File must have a valid extension')
-    return v
-
-@validator('date_to')
-def validate_date_range(cls, v, values):
-    """Validate that date_to is after date_from."""
-    if 'date_from' in values and values['date_from'] and v and v < values['date_from']:
-        raise ValueError('date_to must be after date_from')
-    return v

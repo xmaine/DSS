@@ -24,15 +24,15 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('name', 'uploader', 'created_at', 'is_active')
+    list_display = ('title', 'uploader', 'created_at', 'is_active')  # Changed from 'name' to 'title'
     list_filter = ('is_active', 'created_at', 'document_type')
-    search_fields = ('name', 'description')
+    search_fields = ('title', 'description')  # Changed from 'name' to 'title'
 
 @admin.register(DocumentVersion)
 class DocumentVersionAdmin(admin.ModelAdmin):
     list_display = ('document', 'version_number', 'uploaded_by', 'created_at')
     list_filter = ('created_at',)
-    search_fields = ('document__name',)
+    search_fields = ('document__title',)  # Changed from 'name' to 'title'
 
 @admin.register(DocumentRating)
 class DocumentRatingAdmin(admin.ModelAdmin):

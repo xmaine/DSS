@@ -10,10 +10,14 @@ const api = axios.create({
   withCredentials: true, // Enable cookies for session authentication
 });
 
-// Request interceptor to add authentication token if available
+// Request interceptor to handle FormData properly and log requests
 api.interceptors.request.use(
   (config) => {
     console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
+    // If we're sending FormData, let the browser set the Content-Type
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     // For session authentication, we don't need to add tokens
     // The session cookie will be sent automatically with withCredentials: true
     return config;

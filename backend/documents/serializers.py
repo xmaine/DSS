@@ -5,6 +5,7 @@ class FolderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Folder
         fields = ['id', 'name', 'parent_folder', 'owner', 'created_at', 'updated_at', 'is_active', 'path']
+        read_only_fields = ['created_at', 'updated_at']  # Make timestamps read-only
 
 class DocumentSerializer(serializers.ModelSerializer):
     tags = serializers.StringRelatedField(many=True, read_only=True)
@@ -18,9 +19,9 @@ class DocumentSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Document
-        fields = ['id', 'uuid', 'name', 'description', 'folder', 'folder_name', 'document_type', 'document_type_name', 'correspondent', 
+        fields = ['id', 'uuid', 'title', 'description', 'folder', 'folder_name', 'document_type', 'document_type_name', 'correspondent', 
                   'correspondent_name', 'uploader', 'uploader_name', 'current_version', 'created_at', 'updated_at', 'locked_by', 
-                  'locked_by_name', 'locked_at', 'is_active', 'extracted_text', 'tags', 'current_version_file', 'current_version_number']
+                  'locked_by_name', 'locked_at', 'is_active', 'extracted_text', 'tags', 'current_version_file', 'current_version_number']  # Changed 'name' to 'title'
     
     def get_current_version_file(self, obj):
         if obj.current_version:

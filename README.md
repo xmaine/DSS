@@ -50,11 +50,13 @@ This system provides a centralized platform for storing, organizing, searching, 
 
 ## Development Guidelines
 
-All developers must follow the guidelines outlined in [RULES.md](SOURCE/RULES.md) which includes:
+All developers must follow the guidelines outlined in [QRULES.md](Source-System/QRULES.md) which includes:
 - Coding standards and conventions
 - Testing requirements
 - Documentation practices
 - Task management procedures
+
+For details on how these guidelines have been implemented in this project, see [QRULES_IMPLEMENTATION_SUMMARY.md](QRULES_IMPLEMENTATION_SUMMARY.md).
 
 ## Frontend Component Structure
 

@@ -17,7 +17,7 @@ class Folder(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    path = models.TextField()  # Materialized path for efficient hierarchy queries
+    path = models.TextField(blank=True)  # Materialized path for efficient hierarchy queries, can be blank initially
     
     def __str__(self):
         return self.name
@@ -52,7 +52,7 @@ class Document(models.Model):
     """Model representing a document in the system."""
     
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    name = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)  # Changed from 'name' to 'title' to match validation model
     description = models.TextField(blank=True, null=True)
     folder = models.ForeignKey(Folder, on_delete=models.CASCADE, null=True, blank=True, related_name='documents')
     document_type = models.ForeignKey(DocumentType, on_delete=models.SET_NULL, null=True, blank=True)
@@ -68,7 +68,7 @@ class Document(models.Model):
     tags = models.ManyToManyField(Tag, through='DocumentTag')
     
     def __str__(self):
-        return self.name
+        return self.title  # Changed from 'name' to 'title'
 
 class DocumentTag(models.Model):
     """Model representing the many-to-many relationship between documents and tags."""
@@ -94,7 +94,7 @@ class DocumentVersion(models.Model):
     is_current = models.BooleanField(default=False)
     
     def __str__(self):
-        return f"{self.document.name} v{self.version_number}"
+        return f"{self.document.title} v{self.version_number}"  # Changed from 'name' to 'title'
 
 class DocumentRating(models.Model):
     """Model representing a user's rating of a document."""
@@ -108,7 +108,7 @@ class DocumentRating(models.Model):
         unique_together = ('document', 'user')
     
     def __str__(self):
-        return f"{self.user.username} rating {self.rating} for {self.document.name}"
+        return f"{self.user.username} rating {self.rating} for {self.document.title}"  # Changed from 'name' to 'title'
 
 class Annotation(models.Model):
     """Model representing an annotation on a document version."""
@@ -122,7 +122,7 @@ class Annotation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"Annotation by {self.user.username} on {self.document_version.document.name}"
+        return f"Annotation by {self.user.username} on {self.document_version.document.title}"  # Changed from 'name' to 'title'
 
 class SharedItem(models.Model):
     """Model representing a shared document or folder.

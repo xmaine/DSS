@@ -9,8 +9,8 @@ import {
   DeleteIcon, 
   ViewIcon 
 } from '../ui/Icons';
-import { getFolders, getDocuments, createFolder, shareFolder } from '../../services/api';
-import { validateMachineToken } from '../../utils/machineToken';
+import { getFolders, getDocuments, updateFolder, deleteFolder, shareFolder, getDocument, deleteDocument, updateDocument } from '../../services/api';
+import useUploadManager from '../upload/useUploadManager';
 
 const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
   const [folders, setFolders] = useState([]);
@@ -32,45 +32,45 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
       setError(null); // Clear any previous errors
       
       // Fetch folders
-      console.log('Fetching folders from API...');
+      console.log('[EMPLOYEE PAGE] Fetching folders from API...');
       const foldersResponse = await getFolders();
-      console.log('Folders API response:', foldersResponse);
+      console.log('[EMPLOYEE PAGE] Folders API response:', foldersResponse);
       
       // Fetch documents
-      console.log('Fetching documents from API...');
+      console.log('[EMPLOYEE PAGE] Fetching documents from API...');
       const documentsResponse = await getDocuments();
-      console.log('Documents API response:', documentsResponse);
+      console.log('[EMPLOYEE PAGE] Documents API response:', documentsResponse);
       
       // Process folders
       if (foldersResponse.data && Array.isArray(foldersResponse.data)) {
         // Log the raw folder data for debugging
-        console.log('Raw folder data from API:', foldersResponse.data);
+        console.log('[EMPLOYEE PAGE] Raw folder data from API:', foldersResponse.data);
         
         // Filter folders to only show those owned by the current user
         const userFolders = foldersResponse.data.filter(folder => {
           // Check if folder is owned by current user
-          const isOwnedByUser = (typeof folder.owner === 'object' && folder.owner !== null) 
+          const isOwnedByUser = (typeof folder.owner === 'object' && folder !== null) 
             ? folder.owner.id === user.id 
             : folder.owner === user.id;
           
-          console.log(`Folder ${folder.name} (ID: ${folder.id}) - Owner: ${folder.owner}, User ID: ${user.id}, Owned by user: ${isOwnedByUser}`);
+          console.log(`[EMPLOYEE PAGE] Folder ${folder.name} (ID: ${folder.id}) - Owner: ${folder.owner}, User ID: ${user.id}, Owned by user: ${isOwnedByUser}`);
           return isOwnedByUser;
         });
         
-        console.log('Filtered user folders:', userFolders);
+        console.log('[EMPLOYEE PAGE] Filtered user folders:', userFolders);
         setFolders(userFolders);
-        console.log('Folders state updated with', userFolders.length, 'folders');
+        console.log('[EMPLOYEE PAGE] Folders state updated with', userFolders.length, 'folders');
         
         // Expand the first level folders by default
         const topLevelFolders = userFolders.filter(folder => 
           folder.parent_folder === null || 
           (folder.name && folder.name.includes("'s Documents"))
         );
-        console.log('Top level folders:', topLevelFolders);
+        console.log('[EMPLOYEE PAGE] Top level folders:', topLevelFolders);
         setExpandedFolders(new Set(topLevelFolders.map(folder => folder.id)));
-        console.log('Expanded folders set to:', Array.from(new Set(topLevelFolders.map(folder => folder.id))));
+        console.log('[EMPLOYEE PAGE] Expanded folders set to:', Array.from(new Set(topLevelFolders.map(folder => folder.id))));
       } else {
-        console.warn('Unexpected folder data format:', foldersResponse.data);
+        console.warn('[EMPLOYEE PAGE] Unexpected folder data format:', foldersResponse.data);
         setFolders([]);
       }
       
@@ -79,7 +79,7 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
         // Convert API document data to the format expected by the UI
         const processedDocuments = documentsResponse.data.map(doc => ({
           id: doc.id,
-          name: doc.name,
+          name: doc.title || doc.name, // Use title if available, fallback to name
           type: doc.file_type || 'Unknown',
           uploader: doc.uploader_name || doc.uploader || 'Unknown User',
           lastModified: new Date(doc.updated_at || doc.created_at).toLocaleDateString(),
@@ -90,16 +90,16 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
         }));
         
         setDocuments(processedDocuments);
-        console.log('Documents state updated with', processedDocuments.length, 'documents');
+        console.log('[EMPLOYEE PAGE] Documents state updated with', processedDocuments.length, 'documents');
       } else {
-        console.warn('Unexpected document data format:', documentsResponse.data);
+        console.warn('[EMPLOYEE PAGE] Unexpected document data format:', documentsResponse.data);
         setDocuments([]);
       }
       
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching data:', err);
-      console.error('Error details:', {
+      console.error('[EMPLOYEE PAGE] Error fetching data:', err);
+      console.error('[EMPLOYEE PAGE] Error details:', {
         message: err.message,
         response: err.response,
         status: err.response?.status,
@@ -111,6 +111,34 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
       setLoading(false);
     }
   }, [user.id]);
+
+  // Initialize the upload manager hook
+  const { handleFileUpload, handleCreateFolder: handleCreateFolderHook, handleFolderUpload } = useUploadManager(
+    user,
+    selectedFolder,
+    fetchData, // onUploadComplete - refresh data after upload
+    (error) => {
+      console.error('[EMPLOYEE PAGE] Upload error:', error);
+      // Show error to user
+      let errorMessage = 'Unknown error';
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (error.response.data.detail) {
+          errorMessage = error.response.data.detail;
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else {
+          errorMessage = JSON.stringify(error.response.data);
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      alert('Upload error: ' + errorMessage);
+    }
+  );
 
   useEffect(() => {
     fetchData();
@@ -193,26 +221,26 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
   };
 
   const renderFolderTree = (parentId = null, level = 0) => {
-    console.log(`Rendering folder tree for parentId=${parentId}, level=${level}`);
-    console.log(`Current folders state:`, folders);
-    console.log(`Current expanded folders:`, Array.from(expandedFolders));
-    console.log(`Current user:`, user);
+    console.log(`[EMPLOYEE PAGE] Rendering folder tree for parentId=${parentId}, level=${level}`);
+    console.log(`[EMPLOYEE PAGE] Current folders state:`, folders);
+    console.log(`[EMPLOYEE PAGE] Current expanded folders:`, Array.from(expandedFolders));
+    console.log(`[EMPLOYEE PAGE] Current user:`, user);
     
     // Show loading state
     if (loading) {
-      console.log('Showing loading state');
+      console.log('[EMPLOYEE PAGE] Showing loading state');
       return <div className="p-2 text-gray-500">Loading folders...</div>;
     }
     
     // Show error state
     if (error) {
-      console.log('Showing error state:', error);
+      console.log('[EMPLOYEE PAGE] Showing error state:', error);
       return <div className="p-2 text-red-500">Error: {error}</div>;
     }
     
     // Show empty state
     if (!folders || folders.length === 0) {
-      console.log('Showing no folders available state');
+      console.log('[EMPLOYEE PAGE] Showing no folders available state');
       return <div className="p-2 text-gray-500">No folders available</div>;
     }
     
@@ -225,10 +253,10 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
         )
       : folders.filter(folder => folder.parent_folder === parentId);
       
-    console.log(`Children for parentId=${parentId}:`, children);
+    console.log(`[EMPLOYEE PAGE] Children for parentId=${parentId}:`, children);
     
     if (children.length === 0) {
-      console.log(`No children for parentId=${parentId}, returning null`);
+      console.log(`[EMPLOYEE PAGE] No children for parentId=${parentId}, returning null`);
       // If no folders are found for the user, show a message
       if (parentId === null) {
         return <div className="p-2 text-gray-500">No personal folders found. Please contact your administrator.</div>;
@@ -236,15 +264,15 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
       return null;
     }
 
-    console.log(`Rendering ${children.length} children for parentId=${parentId}`);
+    console.log(`[EMPLOYEE PAGE] Rendering ${children.length} children for parentId=${parentId}`);
     return (
       <div className="pl-4"> {/* Using pl-4 instead of ml-${level * 4} for better Tailwind support */}
         {children.map(folder => {
-          console.log(`Rendering folder:`, folder);
+          console.log(`[EMPLOYEE PAGE] Rendering folder:`, folder);
           const hasChildren = folders.filter(f => f.parent_folder === folder.id).length > 0;
           const isExpanded = expandedFolders.has(folder.id);
           const isHomeFolder = folder.name && folder.name.includes("'s Documents");
-          console.log(`Folder ${folder.id} hasChildren: ${hasChildren}, isExpanded: ${isExpanded}, isHomeFolder: ${isHomeFolder}`);
+          console.log(`[EMPLOYEE PAGE] Folder ${folder.id} hasChildren: ${hasChildren}, isExpanded: ${isExpanded}, isHomeFolder: ${isHomeFolder}`);
           
           // Show just the username for personal folders instead of "{username}'s Documents"
           let displayName = folder.name;
@@ -293,171 +321,135 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
   };
 
   const handleDocumentAction = async (documentId, action) => {
-    console.log(`Performing ${action} on document ${documentId}`);
-    // In a real app, this would call your API
+    console.log(`[EMPLOYEE PAGE] Performing ${action} on document ${documentId}`);
     try {
       switch (action) {
         case 'view':
-          // View document logic
+          // View document - in a real app, this would open the document
+          try {
+            const response = await getDocument(documentId);
+            console.log(`[EMPLOYEE PAGE] Document details:`, response.data);
+            // In a real app, this would open a document viewer
+            alert(`Viewing document: ${response.data.title}\n\nFile type: ${response.data.file_type}\nSize: ${response.data.current_version?.file_size || 'Unknown'} bytes`);
+          } catch (error) {
+            console.error(`[EMPLOYEE PAGE] Error viewing document ${documentId}:`, error);
+            alert('Error viewing document: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
+          }
           break;
         case 'edit':
-          // Edit document logic
+          // Edit document - in a real app, this would open an edit form
+          try {
+            const response = await getDocument(documentId);
+            console.log(`[EMPLOYEE PAGE] Document details for edit:`, response.data);
+            // In a real app, this would open an edit modal or navigate to edit page
+            const newTitle = prompt('Enter new title:', response.data.title);
+            if (newTitle !== null && newTitle !== response.data.title) {
+              const updateData = {
+                ...response.data,
+                title: newTitle
+              };
+              await updateDocument(documentId, updateData);
+              alert(`Document title updated to: ${newTitle}`);
+              await fetchData(); // Refresh data
+            }
+          } catch (error) {
+            console.error(`[EMPLOYEE PAGE] Error editing document ${documentId}:`, error);
+            alert('Error editing document: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
+          }
           break;
         case 'delete':
-          // Delete document logic
+          // Delete document
+          const confirmDelete = window.confirm('Are you sure you want to delete this document? This action cannot be undone.');
+          if (confirmDelete) {
+            try {
+              await deleteDocument(documentId);
+              console.log(`[EMPLOYEE PAGE] Document ${documentId} deleted successfully`);
+              alert('Document deleted successfully');
+              await fetchData(); // Refresh data
+            } catch (error) {
+              console.error(`[EMPLOYEE PAGE] Error deleting document ${documentId}:`, error);
+              alert('Error deleting document: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
+            }
+          }
           break;
         case 'lock':
-          // Lock document logic
+          // Lock document
+          try {
+            const response = await getDocument(documentId);
+            const updateData = {
+              ...response.data,
+              locked_by: user.id // Lock the document by current user
+            };
+            await updateDocument(documentId, updateData);
+            console.log(`[EMPLOYEE PAGE] Document ${documentId} locked successfully`);
+            alert('Document locked successfully');
+            await fetchData(); // Refresh data
+          } catch (error) {
+            console.error(`[EMPLOYEE PAGE] Error locking document ${documentId}:`, error);
+            alert('Error locking document: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
+          }
           break;
         case 'unlock':
-          // Unlock document logic
+          // Unlock document
+          try {
+            const response = await getDocument(documentId);
+            const updateData = {
+              ...response.data,
+              locked_by: null // Unlock the document
+            };
+            await updateDocument(documentId, updateData);
+            console.log(`[EMPLOYEE PAGE] Document ${documentId} unlocked successfully`);
+            alert('Document unlocked successfully');
+            await fetchData(); // Refresh data
+          } catch (error) {
+            console.error(`[EMPLOYEE PAGE] Error unlocking document ${documentId}:`, error);
+            alert('Error unlocking document: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
+          }
           break;
         default:
-          console.warn(`Unknown action: ${action}`);
+          console.warn(`[EMPLOYEE PAGE] Unknown action: ${action}`);
       }
     } catch (error) {
-      console.error(`Error performing ${action} on document ${documentId}:`, error);
-    }
-  };
-
-  const handleUploadFiles = async () => {
-    console.log('Opening upload files dialog');
-    try {
-      // Validate machine token before allowing upload
-      const isValid = await validateMachineToken(user.username);
-      if (!isValid) {
-        alert('Machine token validation failed. Please contact your administrator.');
-        return;
-      }
-      
-      // In a real application, this would open a file upload dialog
-      // For now, we'll simulate the process
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.multiple = true; // Allow multiple file selection
-      fileInput.onchange = async (e) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-          alert(`${files.length} file(s) selected for upload. In a real application, these would be uploaded to the server.`);
-          // In a real app, you would:
-          // 1. Create FormData
-          // 2. Add the files to FormData
-          // 3. Call createDocument API endpoint for each file
-          // 4. Refresh the document list
-          await fetchData(); // Refresh the data
-        }
-      };
-      fileInput.click();
-    } catch (error) {
-      console.error('Error uploading files:', error);
-      alert('Error uploading files: ' + error.message);
-    }
-  };
-
-  const handleUploadFolders = async () => {
-    console.log('Opening upload folders dialog');
-    try {
-      // Validate machine token before allowing upload
-      const isValid = await validateMachineToken(user.username);
-      if (!isValid) {
-        alert('Machine token validation failed. Please contact your administrator.');
-        return;
-      }
-      
-      // In a real application, this would open a folder upload dialog
-      // For now, we'll show an alert
-      alert('Upload folders functionality would be implemented here. In a real application, this would allow you to upload entire folder structures.');
-    } catch (error) {
-      console.error('Error uploading folders:', error);
-      alert('Error uploading folders: ' + error.message);
-    }
-  };
-
-  const handleCreateFolder = async () => {
-    console.log('Opening create folder dialog');
-    try {
-      // In a real application, this would open a folder creation dialog
-      // For now, we'll use a prompt to get the folder name
-      const folderName = prompt('Enter the name for the new folder:');
-      if (folderName) {
-        // Create folder data with proper path
-        const folderData = {
-          name: folderName,
-          owner: user.id, // Set the current user as owner
-          is_active: true
-        };
-        
-        // Determine the path based on the selected folder or user's department
-        if (selectedFolder) {
-          // If a folder is selected, set it as the parent and create path
-          folderData.parent_folder = selectedFolder.id;
-          // For nested folders, we need to build the path correctly
-          if (selectedFolder.path) {
-            folderData.path = `${selectedFolder.path}/${folderName}`;
-          } else {
-            // Fallback if path is not available
-            folderData.path = `/${folderName}`;
-          }
-        } else {
-          // If no folder is selected, create in user's department folder
-          // This follows the pattern from the backend signals
-          if (user.department) {
-            folderData.path = `/${user.department} Documents/${folderName}`;
-          } else {
-            folderData.path = `/${folderName}`;
-          }
-        }
-        
-        console.log('Creating folder with data:', folderData);
-        
-        // Call the API to create the folder
-        await createFolder(folderData);
-        console.log(`Folder "${folderName}" created successfully`);
-        
-        // Refresh the folder list
-        await fetchData();
-        
-        alert(`Folder "${folderName}" created successfully!`);
-      }
-    } catch (error) {
-      console.error('Error creating folder:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-      alert('Error creating folder: ' + (error.response?.data?.detail || error.response?.data || error.message || 'Unknown error'));
+      console.error(`[EMPLOYEE PAGE] Error performing ${action} on document ${documentId}:`, error);
+      alert(`Error performing ${action} on document: ${error.message || 'Unknown error'}`);
     }
   };
 
   const handleRefresh = async () => {
-    console.log('Refreshing documents and folders');
+    console.log('[EMPLOYEE PAGE] Refreshing documents and folders');
     try {
       // Refresh the data
       await fetchData();
-      console.log('Refresh completed successfully');
-      alert('Data refreshed successfully!');
+      console.log('[EMPLOYEE PAGE] Refresh completed successfully');
+      // Show a subtle notification instead of an alert
+      console.log('[EMPLOYEE PAGE] Data refreshed successfully!');
     } catch (error) {
-      console.error('Error refreshing data:', error);
-      alert('Error refreshing data: ' + error.message);
+      console.error('[EMPLOYEE PAGE] Error refreshing data:', error);
+      alert('Error refreshing data: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
     }
   };
 
   // Handle right-click on folder to show context menu
   const handleFolderRightClick = (e, folder) => {
     e.preventDefault();
+    console.log('[EMPLOYEE PAGE] Right-click on folder:', folder);
     setContextMenu({
       visible: true,
       x: e.clientX,
       y: e.clientY,
       folder: folder
     });
+    console.log('[EMPLOYEE PAGE] Context menu set to visible at:', e.clientX, e.clientY);
   };
 
   // Close context menu when clicking elsewhere
   useEffect(() => {
-    const handleClickOutside = () => {
+    const handleClickOutside = (e) => {
+      // Don't close if clicking on the context menu itself
+      if (contextMenu.visible && e.target.closest('.folder-context-menu')) {
+        return;
+      }
+      console.log('[EMPLOYEE PAGE] Click outside detected, hiding context menu');
       setContextMenu(prev => ({ ...prev, visible: false }));
     };
 
@@ -465,19 +457,29 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, []);
+  }, [contextMenu.visible]);
 
   // Folder context menu actions
-  const handleRenameFolder = () => {
+  const handleRenameFolder = async () => {
     if (!contextMenu.folder) return;
     
     const newName = prompt('Enter new folder name:', contextMenu.folder.name);
     if (newName && newName !== contextMenu.folder.name) {
-      // In a real app, this would call an API to rename the folder
-      console.log(`Renaming folder ${contextMenu.folder.id} to ${newName}`);
-      alert(`Folder renamed to ${newName}`);
-      setContextMenu(prev => ({ ...prev, visible: false }));
-      fetchData(); // Refresh the folder list
+      try {
+        // Call the API to rename the folder
+        const folderData = {
+          ...contextMenu.folder,
+          name: newName
+        };
+        await updateFolder(contextMenu.folder.id, folderData);
+        console.log(`[EMPLOYEE PAGE] Renamed folder ${contextMenu.folder.id} to ${newName}`);
+        alert(`Folder renamed to ${newName}`);
+        setContextMenu(prev => ({ ...prev, visible: false }));
+        await fetchData(); // Refresh the folder list
+      } catch (error) {
+        console.error('[EMPLOYEE PAGE] Error renaming folder:', error);
+        alert('Error renaming folder: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
+      }
     }
   };
 
@@ -485,8 +487,8 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     if (!contextMenu.folder) return;
     
     // In a real app, this would copy the folder
-    console.log(`Copying folder ${contextMenu.folder.id}`);
-    alert(`Folder copied`);
+    console.log(`[EMPLOYEE PAGE] Copying folder ${contextMenu.folder.id}`);
+    alert(`Folder copy functionality would be implemented in a full version`);
     setContextMenu(prev => ({ ...prev, visible: false }));
   };
 
@@ -495,12 +497,12 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     
     // In a real app, this would move the folder
     // Move is only applicable within the home directory of the user
-    console.log(`Moving folder ${contextMenu.folder.id}`);
-    alert(`Folder moved`);
+    console.log(`[EMPLOYEE PAGE] Moving folder ${contextMenu.folder.id}`);
+    alert(`Folder move functionality would be implemented in a full version`);
     setContextMenu(prev => ({ ...prev, visible: false }));
   };
 
-  const handleDeleteFolder = () => {
+  const handleDeleteFolder = async () => {
     if (!contextMenu.folder) return;
     
     // Prevent deletion of home folder
@@ -512,11 +514,17 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     
     const confirmDelete = window.confirm(`Are you sure you want to delete folder ${contextMenu.folder.name}?`);
     if (confirmDelete) {
-      // In a real app, this would call an API to delete the folder
-      console.log(`Deleting folder ${contextMenu.folder.id}`);
-      alert(`Folder deleted`);
-      setContextMenu(prev => ({ ...prev, visible: false }));
-      fetchData(); // Refresh the folder list
+      try {
+        // Call the API to delete the folder
+        await deleteFolder(contextMenu.folder.id);
+        console.log(`[EMPLOYEE PAGE] Deleted folder ${contextMenu.folder.id}`);
+        alert(`Folder deleted successfully`);
+        setContextMenu(prev => ({ ...prev, visible: false }));
+        await fetchData(); // Refresh the folder list
+      } catch (error) {
+        console.error('[EMPLOYEE PAGE] Error deleting folder:', error);
+        alert('Error deleting folder: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
+      }
     }
   };
 
@@ -524,23 +532,86 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     if (!contextMenu.folder) return;
     
     try {
-      // In a real app, this would share the folder with specified users
-      console.log(`Sharing folder ${contextMenu.folder.id}`);
-      // Example API call:
-      // await shareFolder(contextMenu.folder.id, { shared_with_user: userId, permission_level: 'VIEW' });
-      alert(`Folder shared successfully`);
+      // Prompt for user to share with (in a real app, this would be a proper UI)
+      const userId = prompt('Enter user ID to share with:');
+      if (!userId) return;
+      
+      // Call the API to share the folder
+      await shareFolder(contextMenu.folder.id, { 
+        shared_with_user: userId, 
+        permission_codes: ['view'] 
+      });
+      console.log(`[EMPLOYEE PAGE] Shared folder ${contextMenu.folder.id} with user ${userId}`);
+      alert(`Folder shared successfully with user ID ${userId}`);
       setContextMenu(prev => ({ ...prev, visible: false }));
     } catch (error) {
-      console.error('Error sharing folder:', error);
-      alert('Error sharing folder: ' + error.message);
+      console.error('[EMPLOYEE PAGE] Error sharing folder:', error);
+      alert('Error sharing folder: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
     }
   };
+  
+  // Function to handle folder deletion for the selected folder
+  const handleDeleteSelectedFolder = async () => {
+    if (!selectedFolder) {
+      alert('Please select a folder to delete.');
+      return;
+    }
+    
+    // Prevent deletion of home folder
+    if (selectedFolder.name && selectedFolder.name.includes("'s Documents")) {
+      alert("You cannot delete your home folder.");
+      return;
+    }
+    
+    const confirmDelete = window.confirm(`Are you sure you want to delete folder "${selectedFolder.name}"?`);
+    if (confirmDelete) {
+      try {
+        // Call the API to delete the folder
+        await deleteFolder(selectedFolder.id);
+        console.log(`[EMPLOYEE PAGE] Deleted folder ${selectedFolder.id}`);
+        alert(`Folder "${selectedFolder.name}" deleted successfully`);
+        await fetchData(); // Refresh the folder list
+      } catch (error) {
+        console.error('[EMPLOYEE PAGE] Error deleting folder:', error);
+        alert('Error deleting folder: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
+      }
+    }
+  };
+  
+  // Enhanced folder upload functionality
+  const handleUploadFolderClick = async () => {
+    console.log('[EMPLOYEE PAGE] Upload Folder button clicked');
+    try {
+      // For folder upload, we'll use the upload manager's handleFolderUpload function
+      await handleFolderUpload();
+    } catch (error) {
+      console.error('[EMPLOYEE PAGE] Error with folder upload:', error);
+      let errorMessage = 'Unknown error';
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (error.response.data.detail) {
+          errorMessage = error.response.data.detail;
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else {
+          errorMessage = JSON.stringify(error.response.data);
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      alert('Upload error: ' + errorMessage);
+    }
+  };
+  
   const filteredDocuments = documents.filter(doc => {
     // First, apply search filter
     const matchesSearch = 
-      doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (doc.uploader_name && doc.uploader_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
+      (doc.name && doc.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (doc.uploader && doc.uploader.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (doc.tags && doc.tags.some(tag => tag && tag.toLowerCase().includes(searchQuery.toLowerCase())));
     
     // Then, apply folder filter
     if (selectedFolder) {
@@ -550,7 +621,7 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
       // If no folder is selected, show all documents the user has access to
       // Filter to show only documents uploaded by the user
       if (user && user.username) {
-        return matchesSearch && doc.uploader_name === user.username;
+        return matchesSearch && doc.uploader === user.username;
       }
       return matchesSearch;
     }
@@ -562,15 +633,27 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
       <div className="w-64 border-r border-gray-200 p-4"> {/* Fixed width to w-64 as per specification */}
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-semibold text-gray-800">Folders</h3>
-          <button 
-            onClick={handleCreateFolder}
-            className="flex items-center justify-center w-6 h-6 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
-            title="Add Folder"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-          </button>
+          <div className="flex space-x-1">
+            <button 
+              onClick={handleCreateFolderHook}
+              className="flex items-center justify-center w-6 h-6 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+              title="Add Folder"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </button>
+            {/* Delete folder button (replaces debug button) */}
+            <button 
+              onClick={handleDeleteSelectedFolder}
+              className="flex items-center justify-center w-6 h-6 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors"
+              title="Delete Selected Folder"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
           {renderFolderTree()}
@@ -583,44 +666,28 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
         <div className="p-4 border-b border-gray-200 bg-gray-50">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center space-x-2">
-              <div className="relative inline-block text-left">
-                <button 
-                  onClick={() => setShowUploadDropdown(!showUploadDropdown)}
-                  id="upload-combobox"
-                  className="flex items-center px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
-                  title="Upload"
-                >
-                  <UploadIcon className="w-4 h-4 mr-1" />
-                  <span>Upload</span>
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {showUploadDropdown && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                    <div className="py-1">
-                      <button 
-                        onClick={() => {
-                          setShowUploadDropdown(false);
-                          handleUploadFiles();
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Upload Files
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setShowUploadDropdown(false);
-                          handleUploadFolders();
-                        }}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        Upload Folder
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* Upload File Button */}
+              <button 
+                onClick={handleFileUpload}
+                className="flex items-center px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
+                title="Upload File"
+              >
+                <UploadIcon className="w-4 h-4 mr-1" />
+                <span>Upload File</span>
+              </button>
+              
+              {/* Upload Folder Button - Make it functional */}
+              <button 
+                onClick={handleUploadFolderClick}
+                className="flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                title="Upload Folder"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                <span>Upload Folder</span>
+              </button>
+              
               <button 
                 onClick={handleRefresh}
                 className="flex items-center px-3 py-1.5 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors"
@@ -793,7 +860,7 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
       {/* Folder Context Menu */}
       {contextMenu.visible && (
         <div 
-          className="absolute bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1"
+          className="absolute bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1 folder-context-menu"
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           <button 
@@ -814,12 +881,15 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
           >
             Move
           </button>
-          <button 
-            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={handleDeleteFolder}
-          >
-            Delete
-          </button>
+          {/* Only show delete option if user has permission */}
+          {user && user.role !== 'EMPLOYEE' && (
+            <button 
+              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={handleDeleteFolder}
+            >
+              Delete
+            </button>
+          )}
           <button 
             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             onClick={handleShareFolder}

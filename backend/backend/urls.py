@@ -19,18 +19,18 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework import routers
-from documents import views as document_views
+from documents.views import DocumentViewSet, TagViewSet, CorrespondentViewSet, DocumentTypeViewSet, FolderViewSet, SharedItemViewSet
 from documents import health_views
 from processing import views as processing_views
 from users import views as user_views
 
 router = routers.DefaultRouter()
-router.register(r'documents', document_views.DocumentViewSet)
-router.register(r'tags', document_views.TagViewSet)
-router.register(r'correspondents', document_views.CorrespondentViewSet)
-router.register(r'document_types', document_views.DocumentTypeViewSet)
-router.register(r'folders', document_views.FolderViewSet, basename='folder')
-router.register(r'shared-items', document_views.SharedItemViewSet, basename='shareditem')  # Added basename parameter
+router.register(r'documents', DocumentViewSet)
+router.register(r'tags', TagViewSet)
+router.register(r'correspondents', CorrespondentViewSet)
+router.register(r'document_types', DocumentTypeViewSet)
+router.register(r'folders', FolderViewSet, basename='folder')
+router.register(r'shared-items', SharedItemViewSet, basename='shareditem')  # Added basename parameter
 router.register(r'workflows', processing_views.WorkflowTemplateViewSet)
 router.register(r'workflow_steps', processing_views.WorkflowStepViewSet)
 
