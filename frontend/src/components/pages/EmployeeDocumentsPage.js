@@ -325,31 +325,43 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     try {
       switch (action) {
         case 'view':
-          // View document - in a real app, this would open the document
+          // View document - actually download/open the document file
           try {
             const response = await getDocument(documentId);
             console.log(`[EMPLOYEE PAGE] Document details:`, response.data);
-            // In a real app, this would open a document viewer
-            alert(`Viewing document: ${response.data.title}\n\nFile type: ${response.data.file_type}\nSize: ${response.data.current_version?.file_size || 'Unknown'} bytes`);
+            
+            // Get the file URL from the document's current version
+            if (response.data.current_version_file) {
+              // Open the file in a new tab/window
+              window.open(response.data.current_version_file, '_blank');
+            } else {
+              alert('Document file not found.');
+            }
           } catch (error) {
             console.error(`[EMPLOYEE PAGE] Error viewing document ${documentId}:`, error);
             alert('Error viewing document: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
           }
           break;
         case 'edit':
-          // Edit document - in a real app, this would open an edit form
+          // Edit document - open an edit form
           try {
             const response = await getDocument(documentId);
             console.log(`[EMPLOYEE PAGE] Document details for edit:`, response.data);
-            // In a real app, this would open an edit modal or navigate to edit page
+            
+            // Show a more comprehensive edit dialog
             const newTitle = prompt('Enter new title:', response.data.title);
             if (newTitle !== null && newTitle !== response.data.title) {
+              // Show additional fields that can be edited
+              const newDescription = prompt('Enter new description (optional):', response.data.description || '');
+              
               const updateData = {
                 ...response.data,
-                title: newTitle
+                title: newTitle,
+                description: newDescription
               };
+              
               await updateDocument(documentId, updateData);
-              alert(`Document title updated to: ${newTitle}`);
+              alert(`Document updated successfully:\nTitle: ${newTitle}`);
               await fetchData(); // Refresh data
             }
           } catch (error) {
@@ -378,7 +390,8 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
             const response = await getDocument(documentId);
             const updateData = {
               ...response.data,
-              locked_by: user.id // Lock the document by current user
+              locked_by: user.id, // Lock the document by current user
+              locked_at: new Date().toISOString()
             };
             await updateDocument(documentId, updateData);
             console.log(`[EMPLOYEE PAGE] Document ${documentId} locked successfully`);
@@ -395,7 +408,8 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
             const response = await getDocument(documentId);
             const updateData = {
               ...response.data,
-              locked_by: null // Unlock the document
+              locked_by: null, // Unlock the document
+              locked_at: null
             };
             await updateDocument(documentId, updateData);
             console.log(`[EMPLOYEE PAGE] Document ${documentId} unlocked successfully`);
