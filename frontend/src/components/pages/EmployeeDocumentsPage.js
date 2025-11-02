@@ -11,6 +11,7 @@ import {
 } from '../ui/Icons';
 import { getFolders, getDocuments, updateFolder, deleteFolder, shareFolder, getDocument, deleteDocument, updateDocument } from '../../services/api';
 import useUploadManager from '../upload/useUploadManager';
+import DocumentViewerModal from '../documents/DocumentViewerModal';
 
 const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
   const [folders, setFolders] = useState([]);
@@ -24,6 +25,9 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showUploadDropdown, setShowUploadDropdown] = useState(false); // For upload dropdown
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, folder: null }); // For folder context menu
+
+  // State for document viewer modal
+  const [viewingDocument, setViewingDocument] = useState(null);
 
   // Fetch folders and documents from the database
   const fetchData = useCallback(async () => {
@@ -325,18 +329,11 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     try {
       switch (action) {
         case 'view':
-          // View document - actually download/open the document file
+          // View document - show in modal
           try {
             const response = await getDocument(documentId);
             console.log(`[EMPLOYEE PAGE] Document details:`, response.data);
-            
-            // Get the file URL from the document's current version
-            if (response.data.current_version_file) {
-              // Open the file in a new tab/window
-              window.open(response.data.current_version_file, '_blank');
-            } else {
-              alert('Document file not found.');
-            }
+            setViewingDocument(response.data);
           } catch (error) {
             console.error(`[EMPLOYEE PAGE] Error viewing document ${documentId}:`, error);
             alert('Error viewing document: ' + (error.response?.data?.detail || error.message || 'Unknown error'));
@@ -641,6 +638,13 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
     }
   });
 
+  // Handle download from document viewer modal
+  const handleDocumentDownload = (fileUrl) => {
+    if (fileUrl) {
+      window.open(fileUrl, '_blank');
+    }
+  };
+
   return (
     <div className="flex h-full bg-white rounded-lg border border-gray-200">
       {/* Left Column - Folder Tree View (as per UserEmployee.md specification) */}
@@ -911,6 +915,15 @@ const EmployeeDocumentsPage = ({ onDocumentSelect, user }) => {
             Share
           </button>
         </div>
+      )}
+      
+      {/* Document Viewer Modal */}
+      {viewingDocument && (
+        <DocumentViewerModal
+          document={viewingDocument}
+          onClose={() => setViewingDocument(null)}
+          onDownload={handleDocumentDownload}
+        />
       )}
     </div>
   );
